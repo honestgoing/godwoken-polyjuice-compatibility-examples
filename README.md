@@ -46,8 +46,6 @@ yarn ts-node ./scripts/multi-sign-wallet.ts
 
 ### Incompatibility
 
-- Because `ecrecover` returns **ETH Address** instead of **Polyjuice Address**, the `WalletSimple` contract cannot work as expected without modification.
-
-  `WalletSimple` verifies two signers: one from `msg.sender` and the other from `ecrecover`, signer with address stored as **ETH Address** can only be used to sign transaction data, and signer with address stored as **Polyjuice Address** can only be used to execute transactions.
+- `WalletSimple` verifies two signers: one from `msg.sender` and the other from `ecrecover`. Because `msg.sender` is **Polyjuice Address** in `godwoken-polyjuice`, signer with address stored as **Ethereum Address** can only be used to sign transaction data, and signer with address stored as **Polyjuice Address** can only be used to execute transactions.
 
   Note that multisignature wallet implementation like [GnosisSafe](https://github.com/gnosis/safe-contracts/blob/main/contracts/GnosisSafe.sol) which verifies signers using only `ecrecover` should fully compatible with `godwoken-polyjuice`.
