@@ -26,9 +26,7 @@ export async function initGWKAccountIfNeeded(account: string, usingRPC = rpc) {
     return;
   }
 
-  console.log(
-    `Running: Initializing Godwoken account for ${account} by deposit`,
-  );
+  console.log(`Running: Initialize Godwoken account for ${account} by deposit`);
 
   if (GODWOKEN_API_URL == null) {
     throw new Error("process.env.GODWOKEN_API_URL is required");
