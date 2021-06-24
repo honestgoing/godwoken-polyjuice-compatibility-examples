@@ -950,10 +950,10 @@
     path-browserify "^1.0.0"
     url "^0.11.0"
 
-"@retric/test-provider@^0.0.1-rc5":
-  version "0.0.1-rc5"
-  resolved "https://registry.nlark.com/@retric/test-provider/download/@retric/test-provider-0.0.1-rc5.tgz#4788093e2466bddcb4f4cdf50268c837ea0d9dd4"
-  integrity sha1-R4gJPiRmvdy09M31AmjIN+oNndQ=
+"@retric/test-provider@^0.0.1-rc6":
+  version "0.0.1-rc6"
+  resolved "https://registry.nlark.com/@retric/test-provider/download/@retric/test-provider-0.0.1-rc6.tgz#fe4ca66c1ed0889cd11f21730ca78914776ab0bc"
+  integrity sha1-/kymbB7QiJzRHyFzDKeJFHdqsLw=
   dependencies:
     "@ckb-lumos/base" "^0.16.0"
     "@ethersproject/providers" "^5.3.1"

@@ -32,6 +32,6 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "@retric/test-provider": "^0.0.1-rc5"
+    "@retric/test-provider": "^0.0.1-rc6"
   }
 }
