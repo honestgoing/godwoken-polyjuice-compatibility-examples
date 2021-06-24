@@ -1,4 +1,6 @@
-import { providers, Wallet } from "ethers";
+import { providers } from "ethers";
+import PolyjuiceWallet, { PolyjuiceConfig } from "@retric/test-provider/lib/hardhat/wallet-signer";
+import { PolyjuiceJsonRpcProvider } from "@retric/test-provider/lib/hardhat/providers";
 import dotenv from "dotenv";
 import axios from "axios";
 
@@ -11,8 +13,20 @@ if (DEPLOYER_PRIVATE_KEY == null) {
   process.exit(1);
 }
 
-export const rpc = new providers.JsonRpcProvider(process.env.RPC_URL);
-export const deployer = new Wallet(DEPLOYER_PRIVATE_KEY, rpc);
+export const rpc = new PolyjuiceJsonRpcProvider(process.env.RPC_URL);
+const polyjuice_config: PolyjuiceConfig = {
+  godwokerOption: {
+    godwoken: {
+      rollup_type_hash: process.env.ROLLUP_TYPE_HASH!,
+      eth_account_lock: {
+        code_hash: process.env.ETH_ACCOUNT_LOCK_CODE_HASH!,
+        hash_type: "type",
+      },
+    },
+  },
+  web3RpcUrl: process.env.RPC_URL!,
+};
+export const deployer = new PolyjuiceWallet(DEPLOYER_PRIVATE_KEY, polyjuice_config, rpc);
 export const networkSuffix = NETWORK_SUFFIX;
 export const isGodwokenDevnet = networkSuffix === "gwk-devnet";
 
