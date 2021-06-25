@@ -21,9 +21,27 @@ import {
   isGodwokenDevnet,
 } from "../common";
 
+
 import WalletSimple from "../artifacts/contracts/WalletSimple.sol/WalletSimple.json";
 import MintableToken from "../artifacts/contracts/MintableToken.sol/MintableToken.json";
 import PolyjuiceAddress from "../artifacts/contracts/PolyjuiceAddress.sol/PolyjuiceAddress.json";
+
+import PolyjuiceWallet, { PolyjuiceConfig } from "@retric/test-provider/lib/hardhat/wallet-signer";
+import dotenv from "dotenv";
+dotenv.config();
+
+const PolyjuiceWalletConfig: PolyjuiceConfig = {
+  godwokerOption: {
+    godwoken: {
+      rollup_type_hash: process.env.ROLLUP_TYPE_HASH!,
+      eth_account_lock: {
+        code_hash: process.env.ETH_ACCOUNT_LOCK_CODE_HASH!,
+        hash_type: "type",
+      },
+    },
+  },
+  web3RpcUrl: process.env.RPC_URL!,
+};
 
 type TCallStatic = Contract["callStatic"];
 type TransactionResponse = providers.TransactionResponse;
@@ -94,7 +112,7 @@ if (signerPrivateKeys.length !== 2) {
 }
 
 const [signerOne, signerTwo] = signerPrivateKeys.map(
-  (signerPrivateKey) => new Wallet(signerPrivateKey, rpc),
+  (signerPrivateKey) => new PolyjuiceWallet(signerPrivateKey, PolyjuiceWalletConfig, rpc),
 );
 const [signerOneAddress, signerTwoAddress] = [signerOne, signerTwo].map(
   (wallet) => wallet.address,
