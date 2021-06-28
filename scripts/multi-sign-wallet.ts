@@ -24,7 +24,6 @@ import {
 
 import WalletSimple from "../artifacts/contracts/WalletSimple.sol/WalletSimple.json";
 import MintableToken from "../artifacts/contracts/MintableToken.sol/MintableToken.json";
-import PolyjuiceAddress from "../artifacts/contracts/PolyjuiceAddress.sol/PolyjuiceAddress.json";
 
 import PolyjuiceWallet, { PolyjuiceConfig } from "@retric/test-provider/lib/hardhat/wallet-signer";
 import dotenv from "dotenv";
@@ -161,43 +160,10 @@ async function main() {
   ];
   if (isGodwokenDevnet) {
     console.log(
-      "[Incompatibility] using Polyjuice Address for executor(signer two)",
+      "[compatibility] using eth Address for signerand executor",
     );
     await initGWKAccountIfNeeded(signerTwoAddress);
-
-    receipt = await transactionSubmitter.submitAndWait(
-      `Deploy PolyjuiceAddress`,
-      () => {
-        const implementationFactory = new ContractFactory(
-          PolyjuiceAddress.abi,
-          PolyjuiceAddress.bytecode,
-          deployer,
-        );
-        const tx = implementationFactory.getDeployTransaction();
-        tx.gasPrice = txOverride.gasPrice;
-        tx.gasLimit = txOverride.gasLimit;
-        return deployer.sendTransaction(tx);
-      },
-    );
-    const polyjuiceAddressAddress = receipt.contractAddress;
-    console.log("    PolyjuiceAddress address:", polyjuiceAddressAddress);
-
-    const polyjuiceAddress = new Contract(
-      polyjuiceAddressAddress,
-      PolyjuiceAddress.abi,
-      rpc,
-    ) as IPolyjuiceAddress;
-    const polyjuiceAddressOfSignerTwo =
-      await polyjuiceAddress.getPolyjuiceAddress({
-        from: signerTwoAddress,
-      });
-    console.log(
-      "    Executor(signer two) Polyjuice Address:",
-      polyjuiceAddressOfSignerTwo,
-    );
-    signerAddresses[1] = polyjuiceAddressOfSignerTwo;
   }
-
   console.log("Signer addresses:", signerAddresses.join(", "));
 
   await transactionSubmitter.submitAndWait(`Init WalletSimple`, () => {
@@ -260,7 +226,7 @@ async function main() {
         signerOne,
       );
 
-      console.log(`    Executing tx using signer two(${signerAddresses[1]})`);
+      console.log(`    Executing tx using signer two(${signerTwoAddress})`);
       return walletSimpleForSignerTwo.sendMultiSig(
         signedTx.toAddress,
         signedTx.value.toString(),
