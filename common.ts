@@ -3,6 +3,7 @@ import PolyjuiceWallet, { PolyjuiceConfig } from "@retric/test-provider/lib/hard
 import { PolyjuiceJsonRpcProvider } from "@retric/test-provider/lib/hardhat/providers";
 import dotenv from "dotenv";
 import axios from "axios";
+import { GodwokerOption } from "@retric/test-provider/lib/util";
 
 dotenv.config();
 axios.defaults.withCredentials = true;
@@ -13,18 +14,20 @@ if (DEPLOYER_PRIVATE_KEY == null) {
   process.exit(1);
 }
 
-export const rpc = new PolyjuiceJsonRpcProvider(process.env.RPC_URL);
-const polyjuice_config: PolyjuiceConfig = {
-  godwokerOption: {
-    godwoken: {
-      rollup_type_hash: process.env.ROLLUP_TYPE_HASH!,
-      eth_account_lock: {
-        code_hash: process.env.ETH_ACCOUNT_LOCK_CODE_HASH!,
-        hash_type: "type",
-      },
+const godwokerOption: GodwokerOption = {
+  godwoken: {
+    rollup_type_hash: process.env.ROLLUP_TYPE_HASH!,
+    eth_account_lock: {
+      code_hash: process.env.ETH_ACCOUNT_LOCK_CODE_HASH!,
+      hash_type: "type",
     },
   },
+};
+export const rpc = new PolyjuiceJsonRpcProvider(godwokerOption, [], process.env.RPC_URL);
+const polyjuice_config: PolyjuiceConfig = {
+  godwokerOption: godwokerOption,
   web3RpcUrl: process.env.RPC_URL!,
+  abiItems: []
 };
 export const deployer = new PolyjuiceWallet(DEPLOYER_PRIVATE_KEY, polyjuice_config, rpc);
 export const networkSuffix = NETWORK_SUFFIX;
