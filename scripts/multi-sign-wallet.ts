@@ -15,6 +15,8 @@ import {
 import { TransactionSubmitter } from "../TransactionSubmitter";
 import {
   rpc,
+  token_rpc,
+  token_deployer,
   deployer,
   networkSuffix,
   initGWKAccountIfNeeded,
@@ -27,6 +29,7 @@ import MintableToken from "../artifacts/contracts/MintableToken.sol/MintableToke
 
 import PolyjuiceWallet, { PolyjuiceConfig } from "@retric/test-provider/lib/hardhat/wallet-signer";
 import dotenv from "dotenv";
+import { AbiItems } from "@retric/test-provider/lib/abi";
 dotenv.config();
 
 const PolyjuiceWalletConfig: PolyjuiceConfig = {
@@ -40,6 +43,7 @@ const PolyjuiceWalletConfig: PolyjuiceConfig = {
     },
   },
   web3RpcUrl: process.env.RPC_URL!,
+  abiItems: WalletSimple.abi as AbiItems 
 };
 
 type TCallStatic = Contract["callStatic"];
@@ -53,6 +57,7 @@ interface IWalletSimple extends Contract, IWalletSimpleStaticMethods {
   callStatic: IWalletSimpleStaticMethods;
   init(
     signers: [string, string, string],
+    code_hash: string,
     overrides?: Overrides,
   ): Promise<TransactionResponse>;
   sendMultiSig(
@@ -167,7 +172,7 @@ async function main() {
   console.log("Signer addresses:", signerAddresses.join(", "));
 
   await transactionSubmitter.submitAndWait(`Init WalletSimple`, () => {
-    return walletSimple.init(signerAddresses, txOverride);
+    return walletSimple.init(signerAddresses, process.env.ETH_ACCOUNT_LOCK_CODE_HASH!, txOverride);
   });
 
   receipt = await transactionSubmitter.submitAndWait(
@@ -197,10 +202,18 @@ async function main() {
     return mintableToken.setMinter(walletSimpleAddress, txOverride);
   });
 
-  console.log(
-    "Balance before mint:",
-    (await mintableToken.balanceOf(deployerAddress)).toString(),
-  );
+  
+
+  // console.log(signerAddresses);
+  // console.log('get code hash:');
+  // const result = await walletSimple.getCodeHash();
+  // console.log('code hash:', result);
+
+  // console.log(
+  //   "Balance before mint:",
+  //   (await mintableToken.balanceOf(deployerAddress)).toString(),
+  // );
+  
 
   await transactionSubmitter.submitAndWait(
     `Mint 100 using WalletSimple`,

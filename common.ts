@@ -4,6 +4,9 @@ import { PolyjuiceJsonRpcProvider } from "@retric/test-provider/lib/hardhat/prov
 import dotenv from "dotenv";
 import axios from "axios";
 import { GodwokerOption } from "@retric/test-provider/lib/util";
+import SimpleToken from "./artifacts/contracts/MintableToken.sol/MintableToken.json";
+import WalletSimple from "./artifacts/contracts/WalletSimple.sol/WalletSimple.json";
+import { AbiItems } from "@retric/test-provider/lib/abi";
 
 dotenv.config();
 axios.defaults.withCredentials = true;
@@ -23,13 +26,20 @@ const godwokerOption: GodwokerOption = {
     },
   },
 };
-export const rpc = new PolyjuiceJsonRpcProvider(godwokerOption, [], process.env.RPC_URL);
+export const token_rpc = new PolyjuiceJsonRpcProvider(godwokerOption, SimpleToken.abi as AbiItems, process.env.RPC_URL);
+export const rpc = new PolyjuiceJsonRpcProvider(godwokerOption, WalletSimple.abi as AbiItems, process.env.RPC_URL);
 const polyjuice_config: PolyjuiceConfig = {
   godwokerOption: godwokerOption,
   web3RpcUrl: process.env.RPC_URL!,
-  abiItems: []
+  abiItems: WalletSimple.abi as AbiItems
+};
+const token_polyjuice_config: PolyjuiceConfig = {
+  godwokerOption: godwokerOption,
+  web3RpcUrl: process.env.RPC_URL!,
+  abiItems: SimpleToken.abi as AbiItems
 };
 export const deployer = new PolyjuiceWallet(DEPLOYER_PRIVATE_KEY, polyjuice_config, rpc);
+export const token_deployer = new PolyjuiceWallet(DEPLOYER_PRIVATE_KEY, token_polyjuice_config, token_rpc);
 export const networkSuffix = NETWORK_SUFFIX;
 export const isGodwokenDevnet = networkSuffix === "gwk-devnet";
 

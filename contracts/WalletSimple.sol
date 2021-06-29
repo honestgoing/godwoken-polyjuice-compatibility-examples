@@ -123,6 +123,10 @@ contract WalletSimple {
         return signers[signer];
     }
 
+    function getCodeHash() public view returns (bytes32) {
+        return ethAccountLockCodeHash;
+    }
+
     /**
      * Modifier that will execute internal code block only if the sender is an authorized signer on this wallet
      */
@@ -382,6 +386,15 @@ contract WalletSimple {
     ) public returns (address) {
         // splitSignature
         require(signature.length == 65, "Invalid signature - wrong length");
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        // solhint-disable-next-line
+        assembly {
+            r := mload(add(signature, 32))
+            s := mload(add(signature, 64))
+            v := byte(0, mload(add(signature, 96)))
+        }
         
         bytes32 check =
             keccak256(
@@ -392,23 +405,22 @@ contract WalletSimple {
             );
 
         // note use polyRecover instead of ecrecover
+        //return ecrecover(check, v, r, s);
         return polyRecover(check, signature, ethAccountLockCodeHash);
     }
 
     function polyRecover(bytes32 message, bytes memory signature, bytes32 eth_account_lock_code_hash) public returns (address addr) {
         bytes memory input = abi.encode(message, signature, eth_account_lock_code_hash);
-        bytes memory output = new bytes(256);
+        bytes32[1] memory output;
         assembly {
             let len := mload(input)
             if iszero(call(not(0), 0xf2, 0x0, add(input, 0x20), len, output, 288)) {
                 revert(0x0, 0x0)
             }
         }
+        bytes32 script_hash = output[0];
+        require(script_hash.length == 32, "invalid recovered script hash length");
 
-        require(output.length == 20, "invalid recovered address length");
-
-        assembly {
-          addr := mload(add(output, 20))
-        }
+        return address(uint160(uint256(script_hash)));
     }
 }
