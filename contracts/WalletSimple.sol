@@ -378,8 +378,8 @@ contract WalletSimple {
      */
     function recoverAddressFromSignature(
         bytes32 operationHash,
-        bytes memory signature,
-    ) public pure returns (address) {
+        bytes memory signature
+    ) public returns (address) {
         // splitSignature
         require(signature.length == 65, "Invalid signature - wrong length");
         
@@ -395,7 +395,7 @@ contract WalletSimple {
         return polyRecover(check, signature, ethAccountLockCodeHash);
     }
 
-    function polyRecover(bytes32 message, bytes memory signature, bytes32 eth_account_lock_code_hash) public returns (address memory addr) {
+    function polyRecover(bytes32 message, bytes memory signature, bytes32 eth_account_lock_code_hash) public returns (address addr) {
         bytes memory input = abi.encode(message, signature, eth_account_lock_code_hash);
         bytes memory output = new bytes(256);
         assembly {
@@ -405,7 +405,7 @@ contract WalletSimple {
             }
         }
 
-        require(output.length === 20, "invalid recovered address length");
+        require(output.length == 20, "invalid recovered address length");
 
         assembly {
           addr := mload(add(output, 20))
