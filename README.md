@@ -73,8 +73,32 @@ EOF
 yarn ts-node ./scripts/multi-sign-wallet.ts
 ```
 
-### Incompatibility
+### compatibility
 
-- `WalletSimple` verifies two signers: one from `msg.sender` and the other from `ecrecover`. Because `msg.sender` is **Polyjuice Address** in `godwoken-polyjuice`, signer with address stored as **Ethereum Address** can only be used to sign transaction data, and signer with address stored as **Polyjuice Address** can only be used to execute transactions.
+- by using `polyRecover`(a special version of `ecrecover` in polyjuice) with providers, you can now recover eth address from signature. there exist no incompatibility now.
 
-  Note that multisignature wallet implementation like [GnosisSafe](https://github.com/gnosis/safe-contracts/blob/main/contracts/GnosisSafe.sol) which verifies signers using only `ecrecover` should fully compatible with `godwoken-polyjuice`.
+how to use polyRecover like ecrecover:
+
+```sol
+    function polyRecover(bytes32 message, bytes memory signature, bytes32 eth_account_lock_code_hash) public returns (address addr) {
+
+        if (int8(signature[64]) >= 27){
+            signature[64] = byte(int8(signature[64]) - 27);
+        }
+
+        bytes memory input = abi.encode(message, signature, eth_account_lock_code_hash);
+        bytes32[1] memory output;
+        assembly {
+            let len := mload(input)
+            if iszero(call(not(0), 0xf2, 0x0, add(input, 0x20), len, output, 288)) {
+                revert(0x0, 0x0)
+            }
+        }
+        bytes32 script_hash = output[0];
+        require(script_hash.length == 32, "invalid recovered script hash length");
+
+        recover_address = address(uint160(uint256(recentRecoverScriptHash) >> 96));
+
+        return recover_address;
+    }
+```

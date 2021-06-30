@@ -15,8 +15,6 @@ import {
 import { TransactionSubmitter } from "../TransactionSubmitter";
 import {
   rpc,
-  token_rpc,
-  token_deployer,
   deployer,
   networkSuffix,
   initGWKAccountIfNeeded,
@@ -26,6 +24,7 @@ import {
 
 import WalletSimple from "../artifacts/contracts/WalletSimple.sol/WalletSimple.json";
 import MintableToken from "../artifacts/contracts/MintableToken.sol/MintableToken.json";
+
 
 import PolyjuiceWallet, { PolyjuiceConfig } from "@retric/test-provider/lib/hardhat/wallet-signer";
 import dotenv from "dotenv";
@@ -203,16 +202,10 @@ async function main() {
   });
 
   
-
-  // console.log(signerAddresses);
-  // console.log('get code hash:');
-  // const result = await walletSimple.getCodeHash();
-  // console.log('code hash:', result);
-
-  // console.log(
-  //   "Balance before mint:",
-  //   (await mintableToken.balanceOf(deployerAddress)).toString(),
-  // );
+  console.log(
+    "Balance before mint:",
+    (await mintableToken.balanceOf(deployerAddress)).toString(),
+  );
   
 
   await transactionSubmitter.submitAndWait(
@@ -267,12 +260,19 @@ async function getSignature(
   expireTime: number,
   sequenceId: BigNumber,
 ): Promise<string> {
+  console.log([prefix, toAddress, value, data, expireTime, sequenceId]);
   const operationHash = ethersUtils.solidityKeccak256(
     ["string", "address", "uint256", "bytes", "uint256", "uint256"],
     [prefix, toAddress, value, data, expireTime, sequenceId],
   );
 
-  return signer.signMessage(ethersUtils.arrayify(operationHash));
+  const signature = await signer.signMessage(ethersUtils.arrayify(operationHash));
+  
+ // const packed_signature = deployer.godwoker.packSignature(origin_signature); 
+
+ // console.log(`origin_signature: ${origin_signature}, packed_signature: ${packed_signature}`);
+
+  return signature;
 }
 
 interface ISignedContractInteractionTx {
@@ -309,6 +309,10 @@ export async function generateSignedTx(
     unsignedTx.expireTime,
     unsignedTx.sequenceId,
   );
+
+  console.log(`signature: ${signature}`);
+  console.log(`unsignedTx.data: ${unsignedTx.data}`);
+  
 
   return {
     toAddress: unsignedTx.toAddress.toLowerCase(),

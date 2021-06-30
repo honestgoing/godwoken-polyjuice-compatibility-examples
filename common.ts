@@ -1,9 +1,9 @@
 import { providers } from "ethers";
 import PolyjuiceWallet, { PolyjuiceConfig } from "@retric/test-provider/lib/hardhat/wallet-signer";
 import { PolyjuiceJsonRpcProvider } from "@retric/test-provider/lib/hardhat/providers";
+import { GodwokerOption } from "@retric/test-provider/lib/util";
 import dotenv from "dotenv";
 import axios from "axios";
-import { GodwokerOption } from "@retric/test-provider/lib/util";
 import SimpleToken from "./artifacts/contracts/MintableToken.sol/MintableToken.json";
 import WalletSimple from "./artifacts/contracts/WalletSimple.sol/WalletSimple.json";
 import { AbiItems } from "@retric/test-provider/lib/abi";
