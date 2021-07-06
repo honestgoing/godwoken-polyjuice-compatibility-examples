@@ -32,6 +32,6 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "@retric/test-provider": "0.0.1-ethers520"
+    "@polyjuice-provider/ethers": "^0.0.1-rc4"
   }
 }

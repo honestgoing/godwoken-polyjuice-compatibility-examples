@@ -26,9 +26,9 @@ import WalletSimple from "../artifacts/contracts/WalletSimple.sol/WalletSimple.j
 import MintableToken from "../artifacts/contracts/MintableToken.sol/MintableToken.json";
 
 
-import PolyjuiceWallet, { PolyjuiceConfig } from "@retric/test-provider/lib/hardhat/wallet-signer";
+import { PolyjuiceWallet, PolyjuiceConfig } from "@polyjuice-provider/ethers";
+import { AbiItems } from "@polyjuice-provider/base/lib/abi";
 import dotenv from "dotenv";
-import { AbiItems } from "@retric/test-provider/lib/abi";
 dotenv.config();
 
 const PolyjuiceWalletConfig: PolyjuiceConfig = {

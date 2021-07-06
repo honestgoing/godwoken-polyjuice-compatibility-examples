@@ -1,12 +1,12 @@
 import { providers } from "ethers";
-import PolyjuiceWallet, { PolyjuiceConfig } from "@retric/test-provider/lib/hardhat/wallet-signer";
-import { PolyjuiceJsonRpcProvider } from "@retric/test-provider/lib/hardhat/providers";
-import { GodwokerOption } from "@retric/test-provider/lib/util";
+import { PolyjuiceWallet, PolyjuiceConfig } from "@polyjuice-provider/ethers";
+import { PolyjuiceJsonRpcProvider } from "@polyjuice-provider/ethers";
+import { GodwokerOption } from "@polyjuice-provider/base/lib/util";
 import dotenv from "dotenv";
 import axios from "axios";
 import SimpleToken from "./artifacts/contracts/MintableToken.sol/MintableToken.json";
 import WalletSimple from "./artifacts/contracts/WalletSimple.sol/WalletSimple.json";
-import { AbiItems } from "@retric/test-provider/lib/abi";
+import { AbiItems } from "@polyjuice-provider/base/lib/abi";
 
 dotenv.config();
 axios.defaults.withCredentials = true;
