@@ -45,8 +45,13 @@ contract WalletSimple {
 
     // Public fields
     mapping(address => bool) public signers; // The addresses that can co-sign transactions on the wallet
+    address[] public signerAddressList;
+    address public recentRecoverAddress;
+    bytes32 public recentRecoverScriptHash;
+    address public recentEcRecoverAddress;
     bool public safeMode = false; // When active, wallet may only send to signer addresses
     bool public initialized = false; // True if the contract has been initialized
+    bytes32 public ethAccountLockCodeHash; 
 
     uint256 public count;
 
@@ -63,7 +68,7 @@ contract WalletSimple {
      *
      * @param allowedSigners An array of signers on the wallet
      */
-    function init(address[] calldata allowedSigners)
+    function init(address[] calldata allowedSigners, bytes32 code_hash)
         external
         onlyUninitialized
     {
@@ -73,7 +78,13 @@ contract WalletSimple {
             require(allowedSigners[i] != address(0), "Invalid signer");
             signers[allowedSigners[i]] = true;
         }
+        ethAccountLockCodeHash = code_hash;
+        signerAddressList = allowedSigners; 
         initialized = true;
+    }
+
+    function init_code_hash(bytes32 eth_account_lock_code_hash) public {
+        ethAccountLockCodeHash = eth_account_lock_code_hash;
     }
 
     /**
@@ -119,6 +130,22 @@ contract WalletSimple {
      */
     function isSigner(address signer) public view returns (bool) {
         return signers[signer];
+    }
+
+    function getSignerAddressList() public view returns (address[] memory) {
+        return signerAddressList;
+    }
+
+    function getCodeHash() public view returns (bytes32) {
+        return ethAccountLockCodeHash;
+    }
+
+    function getRecentRecoverScriptHash() public view returns (bytes32) {
+        return recentRecoverScriptHash;
+    }
+
+    function getRecentRecoverAddress() public view returns (address) {
+        return recentRecoverAddress;
     }
 
     /**
@@ -226,8 +253,8 @@ contract WalletSimple {
         tryInsertSequenceId(sequenceId);
 
         require(isSigner(otherSigner), "Invalid signer");
-
-        require(otherSigner != msg.sender, "Signers cannot be equal");
+// 
+        // require(otherSigner != msg.sender, "Signers cannot be equal");
 
         return otherSigner;
     }
@@ -377,18 +404,9 @@ contract WalletSimple {
     function recoverAddressFromSignature(
         bytes32 operationHash,
         bytes memory signature
-    ) public pure returns (address) {
+    ) public returns (address) {
         // splitSignature
         require(signature.length == 65, "Invalid signature - wrong length");
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-        // solhint-disable-next-line
-        assembly {
-            r := mload(add(signature, 32))
-            s := mload(add(signature, 64))
-            v := byte(0, mload(add(signature, 96)))
-        }
 
         bytes32 check =
             keccak256(
@@ -398,9 +416,56 @@ contract WalletSimple {
                 )
             );
 
-        // note that this returns 0 if the signature is invalid
-        // Since 0x0 can never be a signer, when the recovered signer address
-        // is checked against our signer list, that 0x0 will cause an invalid signer failure
-        return ecrecover(check, v, r, s);
+        // note use polyRecover instead of ecrecover
+        
+        return polyRecover(check, signature, ethAccountLockCodeHash);
+    }
+
+    function getPersonalMessage(bytes32 unprefix_msg) public view returns (bytes32) {
+        bytes32 check =
+            keccak256(
+                abi.encodePacked(
+                    "\x19Ethereum Signed Message:\n32",
+                    unprefix_msg
+                )
+            );
+        return check;
+    }
+
+    function polyRecover(bytes32 message, bytes memory signature, bytes32 eth_account_lock_code_hash) public returns (address addr) {
+
+        if (int8(signature[64]) >= 27){
+            signature[64] = byte(int8(signature[64]) - 27);
+        }
+
+        bytes memory input = abi.encode(message, signature, eth_account_lock_code_hash);
+        bytes32[1] memory output;
+        assembly {
+            let len := mload(input)
+            if iszero(call(not(0), 0xf2, 0x0, add(input, 0x20), len, output, 288)) {
+                revert(0x0, 0x0)
+            }
+        }
+        bytes32 script_hash = output[0];
+        require(script_hash.length == 32, "invalid recovered script hash length");
+
+        recentRecoverScriptHash = script_hash; 
+        recentRecoverAddress = address(uint160(uint256(recentRecoverScriptHash) >> 96));
+
+        return recentRecoverAddress;
+    }
+
+    function ecRecover(bytes32 message, bytes memory signature) public returns (address addr) {
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        // solhint-disable-next-line
+        assembly {
+            r := mload(add(signature, 32))
+            s := mload(add(signature, 64))
+            v := byte(0, mload(add(signature, 96)))
+        }
+        recentEcRecoverAddress = ecrecover(message, v, r, s); 
+        return recentEcRecoverAddress; 
     }
 }

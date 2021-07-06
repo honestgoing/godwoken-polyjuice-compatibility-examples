@@ -21,9 +21,29 @@ import {
   isGodwokenDevnet,
 } from "../common";
 
+
 import WalletSimple from "../artifacts/contracts/WalletSimple.sol/WalletSimple.json";
 import MintableToken from "../artifacts/contracts/MintableToken.sol/MintableToken.json";
-import PolyjuiceAddress from "../artifacts/contracts/PolyjuiceAddress.sol/PolyjuiceAddress.json";
+
+
+import { PolyjuiceWallet, PolyjuiceConfig } from "@polyjuice-provider/ethers";
+import { AbiItems } from "@polyjuice-provider/base/lib/abi";
+import dotenv from "dotenv";
+dotenv.config();
+
+const PolyjuiceWalletConfig: PolyjuiceConfig = {
+  godwokerOption: {
+    godwoken: {
+      rollup_type_hash: process.env.ROLLUP_TYPE_HASH!,
+      eth_account_lock: {
+        code_hash: process.env.ETH_ACCOUNT_LOCK_CODE_HASH!,
+        hash_type: "type",
+      },
+    },
+  },
+  web3RpcUrl: process.env.RPC_URL!,
+  abiItems: WalletSimple.abi as AbiItems 
+};
 
 type TCallStatic = Contract["callStatic"];
 type TransactionResponse = providers.TransactionResponse;
@@ -36,6 +56,7 @@ interface IWalletSimple extends Contract, IWalletSimpleStaticMethods {
   callStatic: IWalletSimpleStaticMethods;
   init(
     signers: [string, string, string],
+    code_hash: string,
     overrides?: Overrides,
   ): Promise<TransactionResponse>;
   sendMultiSig(
@@ -94,7 +115,7 @@ if (signerPrivateKeys.length !== 2) {
 }
 
 const [signerOne, signerTwo] = signerPrivateKeys.map(
-  (signerPrivateKey) => new Wallet(signerPrivateKey, rpc),
+  (signerPrivateKey) => new PolyjuiceWallet(signerPrivateKey, PolyjuiceWalletConfig, rpc),
 );
 const [signerOneAddress, signerTwoAddress] = [signerOne, signerTwo].map(
   (wallet) => wallet.address,
@@ -143,47 +164,14 @@ async function main() {
   ];
   if (isGodwokenDevnet) {
     console.log(
-      "[Incompatibility] using Polyjuice Address for executor(signer two)",
+      "[compatibility] using eth Address for signerand executor",
     );
     await initGWKAccountIfNeeded(signerTwoAddress);
-
-    receipt = await transactionSubmitter.submitAndWait(
-      `Deploy PolyjuiceAddress`,
-      () => {
-        const implementationFactory = new ContractFactory(
-          PolyjuiceAddress.abi,
-          PolyjuiceAddress.bytecode,
-          deployer,
-        );
-        const tx = implementationFactory.getDeployTransaction();
-        tx.gasPrice = txOverride.gasPrice;
-        tx.gasLimit = txOverride.gasLimit;
-        return deployer.sendTransaction(tx);
-      },
-    );
-    const polyjuiceAddressAddress = receipt.contractAddress;
-    console.log("    PolyjuiceAddress address:", polyjuiceAddressAddress);
-
-    const polyjuiceAddress = new Contract(
-      polyjuiceAddressAddress,
-      PolyjuiceAddress.abi,
-      rpc,
-    ) as IPolyjuiceAddress;
-    const polyjuiceAddressOfSignerTwo =
-      await polyjuiceAddress.getPolyjuiceAddress({
-        from: signerTwoAddress,
-      });
-    console.log(
-      "    Executor(signer two) Polyjuice Address:",
-      polyjuiceAddressOfSignerTwo,
-    );
-    signerAddresses[1] = polyjuiceAddressOfSignerTwo;
   }
-
   console.log("Signer addresses:", signerAddresses.join(", "));
 
   await transactionSubmitter.submitAndWait(`Init WalletSimple`, () => {
-    return walletSimple.init(signerAddresses, txOverride);
+    return walletSimple.init(signerAddresses, process.env.ETH_ACCOUNT_LOCK_CODE_HASH!, txOverride);
   });
 
   receipt = await transactionSubmitter.submitAndWait(
@@ -213,10 +201,12 @@ async function main() {
     return mintableToken.setMinter(walletSimpleAddress, txOverride);
   });
 
+  
   console.log(
     "Balance before mint:",
     (await mintableToken.balanceOf(deployerAddress)).toString(),
   );
+  
 
   await transactionSubmitter.submitAndWait(
     `Mint 100 using WalletSimple`,
@@ -242,7 +232,7 @@ async function main() {
         signerOne,
       );
 
-      console.log(`    Executing tx using signer two(${signerAddresses[1]})`);
+      console.log(`    Executing tx using signer two(${signerTwoAddress})`);
       return walletSimpleForSignerTwo.sendMultiSig(
         signedTx.toAddress,
         signedTx.value.toString(),
@@ -270,12 +260,19 @@ async function getSignature(
   expireTime: number,
   sequenceId: BigNumber,
 ): Promise<string> {
+  console.log([prefix, toAddress, value, data, expireTime, sequenceId]);
   const operationHash = ethersUtils.solidityKeccak256(
     ["string", "address", "uint256", "bytes", "uint256", "uint256"],
     [prefix, toAddress, value, data, expireTime, sequenceId],
   );
 
-  return signer.signMessage(ethersUtils.arrayify(operationHash));
+  const signature = await signer.signMessage(ethersUtils.arrayify(operationHash));
+  
+ // const packed_signature = deployer.godwoker.packSignature(origin_signature); 
+
+ // console.log(`origin_signature: ${origin_signature}, packed_signature: ${packed_signature}`);
+
+  return signature;
 }
 
 interface ISignedContractInteractionTx {
@@ -312,6 +309,10 @@ export async function generateSignedTx(
     unsignedTx.expireTime,
     unsignedTx.sequenceId,
   );
+
+  console.log(`signature: ${signature}`);
+  console.log(`unsignedTx.data: ${unsignedTx.data}`);
+  
 
   return {
     toAddress: unsignedTx.toAddress.toLowerCase(),
