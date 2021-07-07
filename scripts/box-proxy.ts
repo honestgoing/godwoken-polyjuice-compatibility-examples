@@ -1,11 +1,6 @@
-import { ContractFactory, Contract, BigNumberish, providers } from "ethers";
+import { ContractFactory, Contract, BigNumberish } from "ethers";
 
-import {
-  rpc,
-  deployer,
-  isGodwokenDevnet,
-  initGWKAccountIfNeeded,
-} from "../common";
+import { rpc, deployer, isGodwoken, initGWKAccountIfNeeded } from "../common";
 
 import { deployProxy } from "../upgrades/deployProxy";
 import { upgradeProxy } from "../upgrades/upgradeProxy";
@@ -42,8 +37,8 @@ async function main() {
       initializer: "store",
       initializerArgs: [42],
       signer: deployer,
-      gasPrice: isGodwokenDevnet ? 0 : undefined,
-      gasLimit: isGodwokenDevnet ? 1_000_000 : undefined,
+      gasPrice: isGodwoken ? 0 : undefined,
+      gasLimit: isGodwoken ? 1_000_000 : undefined,
     },
   );
 
@@ -65,8 +60,8 @@ async function main() {
     {
       initializer: "increment",
       signer: deployer,
-      gasPrice: isGodwokenDevnet ? 0 : undefined,
-      gasLimit: isGodwokenDevnet ? 1_000_000 : undefined,
+      gasPrice: isGodwoken ? 0 : undefined,
+      gasLimit: isGodwoken ? 1_000_000 : undefined,
     },
   );
 

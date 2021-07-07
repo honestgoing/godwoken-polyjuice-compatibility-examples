@@ -10,3 +10,5 @@ downgrades*.json
 multi-sign-wallet*.json
 
 .openzeppelin
+
+.env.dev

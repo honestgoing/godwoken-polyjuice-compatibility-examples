@@ -18,13 +18,11 @@ import {
   deployer,
   networkSuffix,
   initGWKAccountIfNeeded,
-  isGodwokenDevnet,
+  isGodwoken,
 } from "../common";
-
 
 import WalletSimple from "../artifacts/contracts/WalletSimple.sol/WalletSimple.json";
 import MintableToken from "../artifacts/contracts/MintableToken.sol/MintableToken.json";
-
 
 import { PolyjuiceWallet, PolyjuiceConfig } from "@polyjuice-provider/ethers";
 import { AbiItems } from "@polyjuice-provider/base/lib/abi";
@@ -42,7 +40,7 @@ const PolyjuiceWalletConfig: PolyjuiceConfig = {
     },
   },
   web3RpcUrl: process.env.RPC_URL!,
-  abiItems: WalletSimple.abi as AbiItems 
+  abiItems: WalletSimple.abi as AbiItems,
 };
 
 type TCallStatic = Contract["callStatic"];
@@ -115,15 +113,16 @@ if (signerPrivateKeys.length !== 2) {
 }
 
 const [signerOne, signerTwo] = signerPrivateKeys.map(
-  (signerPrivateKey) => new PolyjuiceWallet(signerPrivateKey, PolyjuiceWalletConfig, rpc),
+  (signerPrivateKey) =>
+    new PolyjuiceWallet(signerPrivateKey, PolyjuiceWalletConfig, rpc),
 );
 const [signerOneAddress, signerTwoAddress] = [signerOne, signerTwo].map(
   (wallet) => wallet.address,
 );
 
 const txOverride = {
-  gasPrice: isGodwokenDevnet ? 0 : undefined,
-  gasLimit: isGodwokenDevnet ? 1_000_000 : undefined,
+  gasPrice: isGodwoken ? 0 : undefined,
+  gasLimit: isGodwoken ? 1_000_000 : undefined,
 };
 
 async function main() {
@@ -162,16 +161,14 @@ async function main() {
     signerTwoAddress,
     deployerAddress,
   ];
-  if (isGodwokenDevnet) {
-    console.log(
-      "[compatibility] using eth Address for signerand executor",
-    );
-    await initGWKAccountIfNeeded(signerTwoAddress);
-  }
   console.log("Signer addresses:", signerAddresses.join(", "));
 
   await transactionSubmitter.submitAndWait(`Init WalletSimple`, () => {
-    return walletSimple.init(signerAddresses, process.env.ETH_ACCOUNT_LOCK_CODE_HASH!, txOverride);
+    return walletSimple.init(
+      signerAddresses,
+      process.env.ETH_ACCOUNT_LOCK_CODE_HASH!,
+      txOverride,
+    );
   });
 
   receipt = await transactionSubmitter.submitAndWait(
@@ -201,13 +198,12 @@ async function main() {
     return mintableToken.setMinter(walletSimpleAddress, txOverride);
   });
 
-  
   console.log(
     "Balance before mint:",
     (await mintableToken.balanceOf(deployerAddress)).toString(),
   );
-  
 
+  await initGWKAccountIfNeeded(signerTwoAddress);
   await transactionSubmitter.submitAndWait(
     `Mint 100 using WalletSimple`,
     async () => {
@@ -266,11 +262,13 @@ async function getSignature(
     [prefix, toAddress, value, data, expireTime, sequenceId],
   );
 
-  const signature = await signer.signMessage(ethersUtils.arrayify(operationHash));
-  
- // const packed_signature = deployer.godwoker.packSignature(origin_signature); 
+  const signature = await signer.signMessage(
+    ethersUtils.arrayify(operationHash),
+  );
 
- // console.log(`origin_signature: ${origin_signature}, packed_signature: ${packed_signature}`);
+  // const packed_signature = deployer.godwoker.packSignature(origin_signature);
+
+  // console.log(`origin_signature: ${origin_signature}, packed_signature: ${packed_signature}`);
 
   return signature;
 }
@@ -312,7 +310,6 @@ export async function generateSignedTx(
 
   console.log(`signature: ${signature}`);
   console.log(`unsignedTx.data: ${unsignedTx.data}`);
-  
 
   return {
     toAddress: unsignedTx.toAddress.toLowerCase(),
