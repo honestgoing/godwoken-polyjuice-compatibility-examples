@@ -80,6 +80,25 @@ how to use polyRecover like ecrecover:
     }
 ```
 
+## Multicall
+
+Install dependencies and compile contracts if not already.
+
+```sh
+yarn install
+yarn compile
+```
+
+### Run
+
+```sh
+# testnet
+yarn ts-node ./scripts/multicall.ts
+
+# devnet
+ENV_PATH=./.env.dev yarn ts-node ./scripts/multicall.ts
+```
+
 ## Devnet Debugging
 
 Use [godwoken-kicker](https://github.com/RetricSu/godwoken-kicker) to start a quick devnet `godwoken-polyjuice` chain.

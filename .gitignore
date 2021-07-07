@@ -8,6 +8,7 @@ cache/
 upgrades*.json
 downgrades*.json
 multi-sign-wallet*.json
+multicall*.json
 
 .openzeppelin
 
