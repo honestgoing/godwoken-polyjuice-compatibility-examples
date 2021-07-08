@@ -4,6 +4,7 @@ import {
   Contract,
   ContractFactory,
   providers,
+  constants,
 } from "ethers";
 import { PolyjuiceJsonRpcProvider } from "@polyjuice-provider/ethers";
 
@@ -101,6 +102,13 @@ async function main() {
         await multicall.callStatic.aggregate([[multicallAddress, callData]])
       )[1][0],
     ).toString(),
+  );
+
+  console.log(
+    "Expecting 0x:",
+    (
+      await multicall.callStatic.aggregate([[constants.AddressZero, callData]])
+    )[1][0],
   );
 }
 
