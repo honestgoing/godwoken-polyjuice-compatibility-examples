@@ -9,6 +9,7 @@ upgrades*.json
 downgrades*.json
 multi-sign-wallet*.json
 multicall*.json
+create2*.json
 
 .openzeppelin
 
