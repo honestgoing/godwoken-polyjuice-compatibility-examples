@@ -10,7 +10,7 @@ import {
 
 import {
   deployer,
-  ethEoaAddressToGodwokenShortAddress,
+  create2ContractAddressToGodwokenShortAddress,
   initGWKAccountIfNeeded,
   isGodwoken,
   networkSuffix,
@@ -86,7 +86,7 @@ async function main() {
     initCodeHash,
   );
   if (isGodwoken) {
-    offChainCreate2Address = ethEoaAddressToGodwokenShortAddress(
+    offChainCreate2Address = create2ContractAddressToGodwokenShortAddress(
       offChainCreate2Address,
     );
   }

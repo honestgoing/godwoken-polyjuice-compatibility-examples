@@ -3,17 +3,15 @@ import {
   CallOverrides,
   Contract,
   ContractFactory,
-  providers,
   constants,
 } from "ethers";
-import { PolyjuiceJsonRpcProvider } from "@polyjuice-provider/ethers";
 
 import {
   deployer,
+  ethEoaAddressToGodwokenShortAddress,
   initGWKAccountIfNeeded,
   isGodwoken,
   networkSuffix,
-  rpc,
 } from "../common";
 
 import { TransactionSubmitter } from "../TransactionSubmitter";
@@ -21,7 +19,6 @@ import { TransactionSubmitter } from "../TransactionSubmitter";
 import Multicall from "../artifacts/contracts/Multicall.sol/Multicall.json";
 
 type TCallStatic = Contract["callStatic"];
-type TransactionResponse = providers.TransactionResponse;
 
 interface IMulticallStaticMethods extends TCallStatic {
   getEthBalance(address: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -48,10 +45,8 @@ async function main() {
 
   let deployerGodwokenAddress = deployerAddress;
   if (isGodwoken) {
-    const { godwoker } = rpc as PolyjuiceJsonRpcProvider;
-    deployerGodwokenAddress = await godwoker.getShortAddressByAllTypeEthAddress(
-      deployerAddress,
-    );
+    deployerGodwokenAddress =
+      ethEoaAddressToGodwokenShortAddress(deployerAddress);
     console.log("Deployer godwoken address:", deployerGodwokenAddress);
   }
 

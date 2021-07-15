@@ -92,12 +92,37 @@ export async function initGWKAccountIfNeeded(account: string, usingRPC = rpc) {
 export function ethEoaAddressToGodwokenShortAddress(
   ethAddress: HexString,
 ): HexString {
-  if (ethAddress.length !== 42 || !ethAddress.startsWith("0x")) {
+  if (!isGodwoken) {
+    return ethAddress;
+  }
+
+  if (!ethers.utils.isAddress(ethAddress)) {
     throw new Error("eth address format error!");
   }
 
   const layer2Lock: Script = {
     code_hash: polyjuiceConfig.ethAccountLockCodeHash,
+    hash_type: "type",
+    args: polyjuiceConfig.rollupTypeHash + ethAddress.slice(2).toLowerCase(),
+  };
+  const scriptHash = utils.computeScriptHash(layer2Lock);
+  const shortAddress = scriptHash.slice(0, 42);
+  return shortAddress;
+}
+
+export function create2ContractAddressToGodwokenShortAddress(
+  ethAddress: HexString,
+): HexString {
+  if (!isGodwoken) {
+    return ethAddress;
+  }
+
+  if (!ethers.utils.isAddress(ethAddress)) {
+    throw new Error("eth address format error!");
+  }
+
+  const layer2Lock: Script = {
+    code_hash: process.env.POLYJUICE_CONTRACT_CODE_HASH!,
     hash_type: "type",
     args: polyjuiceConfig.rollupTypeHash + ethAddress.slice(2).toLowerCase(),
   };
