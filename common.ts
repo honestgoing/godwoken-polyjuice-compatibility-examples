@@ -6,11 +6,11 @@ import {
 } from "@polyjuice-provider/ethers";
 import dotenv from "dotenv";
 import axios from "axios";
-import SimpleToken from "./artifacts/contracts/MintableToken.sol/MintableToken.json";
-import WalletSimple from "./artifacts/contracts/WalletSimple.sol/WalletSimple.json";
 import { AbiItems } from "@polyjuice-provider/base/lib/abi";
 import path from "path";
 import { HexString, Script, utils } from "@ckb-lumos/base";
+
+import WalletSimple from "./artifacts/contracts/WalletSimple.sol/WalletSimple.json";
 
 dotenv.config({
   path: path.resolve(process.env.ENV_PATH ?? "./.env"),
@@ -23,33 +23,20 @@ if (DEPLOYER_PRIVATE_KEY == null) {
   process.exit(1);
 }
 
-const polyjuiceConfig: PolyjuiceConfig = {
+export const polyjuiceConfig: PolyjuiceConfig = {
   rollupTypeHash: process.env.ROLLUP_TYPE_HASH!,
   ethAccountLockCodeHash: process.env.ETH_ACCOUNT_LOCK_CODE_HASH!,
   web3Url: process.env.RPC_URL,
-  abiItems: SimpleToken.abi as AbiItems,
-};
-const tokenPolyjuiceConfig: PolyjuiceConfig = {
-  ...polyjuiceConfig,
   abiItems: WalletSimple.abi as AbiItems,
 };
-export const token_rpc = new PolyjuiceJsonRpcProvider(
-  polyjuiceConfig,
-  process.env.RPC_URL,
-);
 export const polyjuiceRPC = new PolyjuiceJsonRpcProvider(
-  tokenPolyjuiceConfig,
+  polyjuiceConfig,
   process.env.RPC_URL,
 );
 export const polyjuiceDeployer = new PolyjuiceWallet(
   DEPLOYER_PRIVATE_KEY,
   polyjuiceConfig,
   polyjuiceRPC,
-);
-export const token_deployer = new PolyjuiceWallet(
-  DEPLOYER_PRIVATE_KEY,
-  tokenPolyjuiceConfig,
-  token_rpc,
 );
 
 export const defaultRPC = new ethers.providers.JsonRpcProvider(

@@ -5,7 +5,6 @@ import {
   providers,
   Overrides,
   CallOverrides,
-  Wallet,
   BigNumber,
   utils as ethersUtils,
   Signer,
@@ -19,29 +18,15 @@ import {
   networkSuffix,
   initGWKAccountIfNeeded,
   isGodwoken,
+  polyjuiceConfig,
 } from "../common";
 
 import WalletSimple from "../artifacts/contracts/WalletSimple.sol/WalletSimple.json";
 import MintableToken from "../artifacts/contracts/MintableToken.sol/MintableToken.json";
 
-import { PolyjuiceWallet, PolyjuiceConfig } from "@polyjuice-provider/ethers";
-import { AbiItems } from "@polyjuice-provider/base/lib/abi";
+import { PolyjuiceWallet } from "@polyjuice-provider/ethers";
 import dotenv from "dotenv";
 dotenv.config();
-
-const PolyjuiceWalletConfig: PolyjuiceConfig = {
-  godwokerOption: {
-    godwoken: {
-      rollup_type_hash: process.env.ROLLUP_TYPE_HASH!,
-      eth_account_lock: {
-        code_hash: process.env.ETH_ACCOUNT_LOCK_CODE_HASH!,
-        hash_type: "type",
-      },
-    },
-  },
-  web3RpcUrl: process.env.RPC_URL!,
-  abiItems: WalletSimple.abi as AbiItems,
-};
 
 type TCallStatic = Contract["callStatic"];
 type TransactionResponse = providers.TransactionResponse;
@@ -66,14 +51,6 @@ interface IWalletSimple extends Contract, IWalletSimpleStaticMethods {
     signature: string,
     overrides?: Overrides,
   ): Promise<TransactionResponse>;
-}
-
-interface IPolyjuiceAddressStaticMethods extends TCallStatic {
-  getPolyjuiceAddress(overrides?: CallOverrides): Promise<string>;
-}
-
-interface IPolyjuiceAddress extends Contract, IPolyjuiceAddressStaticMethods {
-  callStatic: IPolyjuiceAddressStaticMethods;
 }
 
 interface IMintableTokenStaticMethods extends TCallStatic {
@@ -114,7 +91,7 @@ if (signerPrivateKeys.length !== 2) {
 
 const [signerOne, signerTwo] = signerPrivateKeys.map(
   (signerPrivateKey) =>
-    new PolyjuiceWallet(signerPrivateKey, PolyjuiceWalletConfig, rpc),
+    new PolyjuiceWallet(signerPrivateKey, polyjuiceConfig, rpc),
 );
 const [signerOneAddress, signerTwoAddress] = [signerOne, signerTwo].map(
   (wallet) => wallet.address,
