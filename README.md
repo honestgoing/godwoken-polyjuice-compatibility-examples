@@ -29,7 +29,7 @@ ENV_PATH=./.env.dev yarn ts-node ./scripts/box-proxy.ts
 
 ## Multisignature Wallet
 
-Contracts: [WalletSimple.sol](./contracts/WalletSimple.sol), [MintableToken.sol](./contracts/MintableToken.sol), [PolyjuiceAddress.sol](./contracts/PolyjuiceAddress.sol)
+Contracts: [WalletSimple.sol](./contracts/WalletSimple.sol), [MintableToken.sol](./contracts/MintableToken.sol)
 
 ### Prerequisites
 
@@ -81,6 +81,8 @@ how to use polyRecover like ecrecover:
 ```
 
 ## Multicall
+
+Contracts: [Multicall.sol](./contracts/Multicall.sol)
 
 Install dependencies and compile contracts if not already.
 

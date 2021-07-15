@@ -421,7 +421,7 @@ contract WalletSimple {
         return polyRecover(check, signature, ethAccountLockCodeHash);
     }
 
-    function getPersonalMessage(bytes32 unprefix_msg) public view returns (bytes32) {
+    function getPersonalMessage(bytes32 unprefix_msg) public pure returns (bytes32) {
         bytes32 check =
             keccak256(
                 abi.encodePacked(
