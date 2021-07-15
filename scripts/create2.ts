@@ -10,6 +10,7 @@ import {
 
 import {
   deployer,
+  ethEoaAddressToGodwokenShortAddress,
   initGWKAccountIfNeeded,
   isGodwoken,
   networkSuffix,
@@ -77,17 +78,23 @@ async function main() {
   const salt = constants.HashZero;
   const initCodeHash = await create2.callStatic.INIT_CODE_HASH();
 
-  console.log(
-    "Standard calculated create2 address:",
-    utils.getCreate2Address(create2Address, salt, initCodeHash),
+  console.log("create2 return address:", await create2.callStatic.create(salt));
+
+  let offChainCreate2Address = utils.getCreate2Address(
+    create2Address,
+    salt,
+    initCodeHash,
   );
+  if (isGodwoken) {
+    offChainCreate2Address = ethEoaAddressToGodwokenShortAddress(
+      offChainCreate2Address,
+    );
+  }
+  console.log("    Off-chain create2 address:", offChainCreate2Address);
+
   console.log(
-    "EVM calculated create2 address:",
+    "    On-chain create2 address:",
     await create2.callStatic.getAddress(salt),
-  );
-  console.log(
-    "EVM create2 return address:",
-    await create2.callStatic.create(salt),
   );
 }
 

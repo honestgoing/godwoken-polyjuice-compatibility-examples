@@ -1,13 +1,16 @@
 import { ethers } from "ethers";
-import { PolyjuiceWallet, PolyjuiceConfig } from "@polyjuice-provider/ethers";
-import { PolyjuiceJsonRpcProvider } from "@polyjuice-provider/ethers";
-import { GodwokerOption } from "@polyjuice-provider/base/lib/util";
+import {
+  PolyjuiceWallet,
+  PolyjuiceConfig,
+  PolyjuiceJsonRpcProvider,
+} from "@polyjuice-provider/ethers";
 import dotenv from "dotenv";
 import axios from "axios";
 import SimpleToken from "./artifacts/contracts/MintableToken.sol/MintableToken.json";
 import WalletSimple from "./artifacts/contracts/WalletSimple.sol/WalletSimple.json";
 import { AbiItems } from "@polyjuice-provider/base/lib/abi";
 import path from "path";
+import { HexString, Script, utils } from "@ckb-lumos/base";
 
 dotenv.config({
   path: path.resolve(process.env.ENV_PATH ?? "./.env"),
@@ -20,43 +23,32 @@ if (DEPLOYER_PRIVATE_KEY == null) {
   process.exit(1);
 }
 
-const godwokerOption: GodwokerOption = {
-  godwoken: {
-    rollup_type_hash: process.env.ROLLUP_TYPE_HASH!,
-    eth_account_lock: {
-      code_hash: process.env.ETH_ACCOUNT_LOCK_CODE_HASH!,
-      hash_type: "type",
-    },
-  },
+const polyjuiceConfig: PolyjuiceConfig = {
+  rollupTypeHash: process.env.ROLLUP_TYPE_HASH!,
+  ethAccountLockCodeHash: process.env.ETH_ACCOUNT_LOCK_CODE_HASH!,
+  web3Url: process.env.RPC_URL,
+  abiItems: SimpleToken.abi as AbiItems,
+};
+const tokenPolyjuiceConfig: PolyjuiceConfig = {
+  ...polyjuiceConfig,
+  abiItems: WalletSimple.abi as AbiItems,
 };
 export const token_rpc = new PolyjuiceJsonRpcProvider(
-  godwokerOption,
-  SimpleToken.abi as AbiItems,
+  polyjuiceConfig,
   process.env.RPC_URL,
 );
 export const polyjuiceRPC = new PolyjuiceJsonRpcProvider(
-  godwokerOption,
-  WalletSimple.abi as AbiItems,
+  tokenPolyjuiceConfig,
   process.env.RPC_URL,
 );
-const polyjuice_config: PolyjuiceConfig = {
-  godwokerOption: godwokerOption,
-  web3RpcUrl: process.env.RPC_URL!,
-  abiItems: WalletSimple.abi as AbiItems,
-};
-const token_polyjuice_config: PolyjuiceConfig = {
-  godwokerOption: godwokerOption,
-  web3RpcUrl: process.env.RPC_URL!,
-  abiItems: SimpleToken.abi as AbiItems,
-};
 export const polyjuiceDeployer = new PolyjuiceWallet(
   DEPLOYER_PRIVATE_KEY,
-  polyjuice_config,
+  polyjuiceConfig,
   polyjuiceRPC,
 );
 export const token_deployer = new PolyjuiceWallet(
   DEPLOYER_PRIVATE_KEY,
-  token_polyjuice_config,
+  tokenPolyjuiceConfig,
   token_rpc,
 );
 
@@ -108,6 +100,23 @@ export async function initGWKAccountIfNeeded(account: string, usingRPC = rpc) {
   }
 
   console.log(`    Initialized, id:`, res.data.data.account_id);
+}
+
+export function ethEoaAddressToGodwokenShortAddress(
+  ethAddress: HexString,
+): HexString {
+  if (ethAddress.length !== 42 || !ethAddress.startsWith("0x")) {
+    throw new Error("eth address format error!");
+  }
+
+  const layer2Lock: Script = {
+    code_hash: polyjuiceConfig.ethAccountLockCodeHash,
+    hash_type: "type",
+    args: polyjuiceConfig.rollupTypeHash + ethAddress.slice(2).toLowerCase(),
+  };
+  const scriptHash = utils.computeScriptHash(layer2Lock);
+  const shortAddress = scriptHash.slice(0, 42);
+  return shortAddress;
 }
 
 export const isGodwoken = networkSuffix?.startsWith("gwk");

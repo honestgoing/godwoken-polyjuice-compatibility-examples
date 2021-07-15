@@ -640,13 +640,13 @@
     proper-lockfile "^4.1.1"
     solidity-ast "^0.4.15"
 
-"@polyjuice-provider/base@0.0.1-rc4":
-  version "0.0.1-rc4"
-  resolved "https://registry.yarnpkg.com/@polyjuice-provider/base/-/base-0.0.1-rc4.tgz#8cd6a29c2b1d3429b57af432a6d96af1bf8c7495"
-  integrity sha512-b+jfwaf16FsThQk5WjTNzKbMYHx+ZNfXNPGgP2NrQsr+/FoLZ53R7V/qQxqXL06kg/8B322UEqzQSceicjXHpA==
+"@polyjuice-provider/base@0.0.1-rc5":
+  version "0.0.1-rc5"
+  resolved "https://registry.yarnpkg.com/@polyjuice-provider/base/-/base-0.0.1-rc5.tgz#17c68770860106ff9525919e73357aa84bdb34df"
+  integrity sha512-qCnCJbUnfxIpCmnkuEffsTxp2MfpvqEQhX/okjQAOWfg5qsbDRmPe63/ELUvHLtk+4epDcSUcuaGoxNLqPDqyQ==
   dependencies:
     "@ckb-lumos/base" "^0.16.0"
-    "@polyjuice-provider/godwoken" "^0.0.1-rc4"
+    "@polyjuice-provider/godwoken" "^0.0.1-rc5"
     buffer "^6.0.3"
     encoding "^0.1.13"
     eth-sig-util "^3.0.1"
@@ -655,20 +655,20 @@
     web3 "^1.3.4"
     xhr2-cookies "^1.1.0"
 
-"@polyjuice-provider/ethers@^0.0.1-rc4":
-  version "0.0.1-rc4"
-  resolved "https://registry.yarnpkg.com/@polyjuice-provider/ethers/-/ethers-0.0.1-rc4.tgz#ef3d360e35e4e7457b22fea308dcd5872cfa9339"
-  integrity sha512-veZlERhPXMVuJAqvLMYZInkzfxEY0gnnbgRaXPpIhTwwOxC/ACUnOf/ktUruCl2hzhEFrB0muHK1ge1+oA52Ig==
+"@polyjuice-provider/ethers@^0.0.1-rc5":
+  version "0.0.1-rc5"
+  resolved "https://registry.yarnpkg.com/@polyjuice-provider/ethers/-/ethers-0.0.1-rc5.tgz#693ba5eb11339780dce4b682a06c7f49a1827696"
+  integrity sha512-tfu9lZ2v8mQody6oJVBQgBJUGF6PGQ7I33TQhiHvqL380PlC5Se3SSYA6QGmwXCgGzZ5JN+y04kD0/6hJcFg6g==
   dependencies:
-    "@polyjuice-provider/base" "0.0.1-rc4"
+    "@polyjuice-provider/base" "0.0.1-rc5"
     buffer "^6.0.3"
     encoding "^0.1.13"
     ethers "^5.4.0"
 
-"@polyjuice-provider/godwoken@^0.0.1-rc4":
-  version "0.0.1-rc4"
-  resolved "https://registry.yarnpkg.com/@polyjuice-provider/godwoken/-/godwoken-0.0.1-rc4.tgz#e72b021069984d7798637c88ae5d7110e39b8fa6"
-  integrity sha512-NzJbsoirL/pTVz8p1gPMN25k3VRhACOWPIArMfUhos7lZjog9kZZI2vK+pfoNIgduG66lh9khp7rgPMhzH50lg==
+"@polyjuice-provider/godwoken@^0.0.1-rc5":
+  version "0.0.1-rc5"
+  resolved "https://registry.yarnpkg.com/@polyjuice-provider/godwoken/-/godwoken-0.0.1-rc5.tgz#75d48ad354eede4b7ada7b7f5a231eb15f08761e"
+  integrity sha512-RjxEI9KSYF5lY/CJMMlj2m8xa+7krkh2kRNX/zrz9l2xwB4Q7dP1eBiM//P/3vWH/XnbVbH5g8g08g7mY1KSUg==
   dependencies:
     "@ckb-lumos/base" "^0.16.0"
     ckb-js-toolkit "^0.9.3"

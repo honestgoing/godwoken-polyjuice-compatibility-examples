@@ -32,6 +32,7 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "@polyjuice-provider/ethers": "^0.0.1-rc4"
+    "@ckb-lumos/base": "^0.16.0",
+    "@polyjuice-provider/ethers": "^0.0.1-rc5"
   }
 }
