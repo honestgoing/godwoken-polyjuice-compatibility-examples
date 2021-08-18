@@ -121,17 +121,20 @@ export function create2ContractAddressToGodwokenShortAddress(
     throw new Error("eth address format error!");
   }
 
-  const creatorAccountId: number = +process.env.CREATOR_ACCOUNT_ID!;
+  const creatorAccountId = Number(process.env.CREATOR_ACCOUNT_ID!);
   const creatorAccountIdLe = u32ToLittleEndian(creatorAccountId);
 
   const layer2Lock: Script = {
     code_hash: process.env.POLYJUICE_CONTRACT_CODE_HASH!,
     hash_type: "type",
-    args: polyjuiceConfig.rollupTypeHash + creatorAccountIdLe.slice(2) + ethAddress.slice(2).toLowerCase(),
+    args:
+      polyjuiceConfig.rollupTypeHash +
+      creatorAccountIdLe.slice(2) +
+      ethAddress.slice(2).toLowerCase(),
   };
   const scriptHash = utils.computeScriptHash(layer2Lock);
   const shortAddress = scriptHash.slice(0, 42);
-  return shortAddress;
+  return ethers.utils.getAddress(shortAddress);
 }
 
 export const isGodwoken = networkSuffix?.startsWith("gwk");
@@ -142,4 +145,10 @@ function u32ToLittleEndian(num: number): HexString {
   const buf = Buffer.alloc(4);
   buf.writeUInt32LE(num);
   return `0x${buf.toString("hex")}`;
+}
+
+export function unit(n: number): ethers.BigNumber {
+  return ethers.constants.WeiPerEther.mul(ethers.BigNumber.from(n * 1e6)).div(
+    1e6,
+  );
 }

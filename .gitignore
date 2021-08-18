@@ -10,6 +10,7 @@ downgrades*.json
 multi-sign-wallet*.json
 multicall*.json
 create2*.json
+curve-token-and-faucet*.json
 
 .openzeppelin
 
