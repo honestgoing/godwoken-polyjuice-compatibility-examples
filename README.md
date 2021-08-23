@@ -160,6 +160,8 @@ SIGNER_PRIVATE_KEYS=bdb4474bdd46bf9897accc60c5eb945793e7a3d321bf3b70c30295ceb343
 
 ROLLUP_TYPE_HASH=< replace with your godwoken devnet rollup type hash >
 ETH_ACCOUNT_LOCK_CODE_HASH=< replace with your godwoken devnet eth-account-lock code hash >
+POLYJUICE_CONTRACT_CODE_HASH= < replace with your godwoken devnet polyjuice-contract code hash >
+CREATOR_ACCOUNT_ID=< replace with your godwoken devnet creator account id >
 
 GODWOKEN_API_URL=http://localhost:6101
 EOF
