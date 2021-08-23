@@ -23,6 +23,7 @@ import { TransactionSubmitter } from "../TransactionSubmitter";
 
 import MintableToken from "../artifacts/contracts/MintableToken.sol/MintableToken.json";
 import CurveToken from "../generated-artifacts/contracts/CurveTokenV3.json";
+// import CurveToken from "../artifacts/contracts/CurveTokenV3.sol/CurveTokenV3.json";
 import Faucet from "../artifacts/contracts/Faucet.sol/Faucet.json";
 
 type TCallStatic = Contract["callStatic"];
@@ -100,7 +101,10 @@ async function main() {
         MintableToken.bytecode,
         deployer,
       );
-      const tx = implementationFactory.getDeployTransaction();
+      const tx = implementationFactory.getDeployTransaction(
+        "MintableToken",
+        "MT",
+      );
       tx.gasPrice = txOverrides.gasPrice;
       tx.gasLimit = txOverrides.gasLimit;
       return deployer.sendTransaction(tx);
@@ -171,7 +175,11 @@ async function main() {
   console.log("    Minter:", await curveToken.callStatic.minter());
 
   await transactionSubmitter.submitAndWait("Mint 100,000 MT", () =>
-    faucet.mint([mintableTokenAddress], unit(100_000), txOverrides),
+    faucet.mint(
+      [mintableTokenAddress, mintableTokenAddress],
+      unit(50_000),
+      txOverrides,
+    ),
   );
 
   await transactionSubmitter.submitAndWait("Mint 100,000 CRV", () =>
