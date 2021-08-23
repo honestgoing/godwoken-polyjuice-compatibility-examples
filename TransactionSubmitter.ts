@@ -39,7 +39,7 @@ export class TransactionSubmitter {
       }
     } catch (err) {
       if (err.code === "ENOENT") {
-        console.log(`    New file created`);
+        console.log(`    New history created`);
       } else {
         console.log(
           `    Failed to load transaction history file: ${filePath}:`,

@@ -17,6 +17,7 @@ import {
   networkSuffix,
   rpc,
   unit,
+  unitBNToLocaleString,
 } from "../common";
 
 import { TransactionSubmitter } from "../TransactionSubmitter";
@@ -215,7 +216,7 @@ async function main() {
         ),
       )
     )
-      .map((bn) => bn.div(constants.WeiPerEther.div(1e9)).toNumber() / 1e9)
+      .map(unitBNToLocaleString)
       .join(", "),
   );
 }

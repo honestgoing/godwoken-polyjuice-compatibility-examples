@@ -152,3 +152,9 @@ export function unit(n: number): ethers.BigNumber {
     1e6,
   );
 }
+
+export function unitBNToLocaleString(bn: ethers.BigNumber) {
+  return (
+    bn.div(ethers.constants.WeiPerEther.div(1e9)).toNumber() / 1e9
+  ).toLocaleString("en-US");
+}

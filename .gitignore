@@ -11,6 +11,7 @@ multi-sign-wallet*.json
 multicall*.json
 create2*.json
 curve-token-and-faucet*.json
+stable-swap-3-pool*.json
 
 .openzeppelin
 
