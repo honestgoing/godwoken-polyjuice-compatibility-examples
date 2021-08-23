@@ -23,6 +23,7 @@ export interface IDeployProxyOptions {
   useOVM?: boolean;
   gasPrice?: number;
   gasLimit?: number;
+  shouldIgnoreHistory?: boolean;
 }
 
 export async function deployProxy(
@@ -35,6 +36,7 @@ export async function deployProxy(
     useOVM = false,
     gasPrice,
     gasLimit,
+    shouldIgnoreHistory,
   }: IDeployProxyOptions = {},
 ): Promise<{
   implementationAddress: string;
@@ -48,6 +50,7 @@ export async function deployProxy(
 
   const transactionSubmitter = await TransactionSubmitter.newWithHistory(
     `upgrades${networkSuffix ? `-${networkSuffix}` : ""}.json`,
+    shouldIgnoreHistory,
   );
   let receipt: providers.TransactionReceipt;
 

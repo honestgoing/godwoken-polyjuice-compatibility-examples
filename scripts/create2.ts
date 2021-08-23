@@ -49,6 +49,7 @@ async function main() {
 
   const transactionSubmitter = await TransactionSubmitter.newWithHistory(
     `create2${networkSuffix ? `-${networkSuffix}` : ""}.json`,
+    Boolean(process.env.IGNORE_HISTORY),
   );
 
   let receipt = await transactionSubmitter.submitAndWait(

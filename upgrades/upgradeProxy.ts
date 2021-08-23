@@ -43,6 +43,7 @@ export interface IUpgradeProxyOptions {
   useOVM?: boolean;
   gasPrice?: number;
   gasLimit?: number;
+  shouldIgnoreHistory?: boolean;
 }
 
 export async function upgradeProxy(
@@ -60,12 +61,14 @@ export async function upgradeProxy(
     useOVM = false,
     gasPrice,
     gasLimit,
+    shouldIgnoreHistory,
   }: IUpgradeProxyOptions = {},
 ): Promise<{ implementationAddress: string }> {
   const ProxyAdmin = useOVM ? ProxyAdminOVM : ProxyAdminEVM;
 
   const transactionSubmitter = await TransactionSubmitter.newWithHistory(
     `upgrades${networkSuffix ? `-${networkSuffix}` : ""}.json`,
+    shouldIgnoreHistory,
   );
   let receipt: providers.TransactionReceipt;
 

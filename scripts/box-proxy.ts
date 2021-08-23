@@ -39,6 +39,7 @@ async function main() {
       signer: deployer,
       gasPrice: isGodwoken ? 0 : undefined,
       gasLimit: isGodwoken ? 1_000_000 : undefined,
+      shouldIgnoreHistory: Boolean(process.env.IGNORE_HISTORY),
     },
   );
 

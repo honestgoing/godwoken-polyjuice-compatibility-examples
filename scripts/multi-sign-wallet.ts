@@ -108,6 +108,7 @@ async function main() {
 
   const transactionSubmitter = await TransactionSubmitter.newWithHistory(
     `multi-sign-wallet${networkSuffix ? `-${networkSuffix}` : ""}.json`,
+    Boolean(process.env.IGNORE_HISTORY),
   );
 
   let receipt = await transactionSubmitter.submitAndWait(

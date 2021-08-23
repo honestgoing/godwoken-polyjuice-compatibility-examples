@@ -52,6 +52,7 @@ async function main() {
 
   const transactionSubmitter = await TransactionSubmitter.newWithHistory(
     `multicall${networkSuffix ? `-${networkSuffix}` : ""}.json`,
+    Boolean(process.env.IGNORE_HISTORY),
   );
 
   let receipt = await transactionSubmitter.submitAndWait(

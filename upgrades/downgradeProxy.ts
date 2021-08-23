@@ -43,6 +43,7 @@ export interface IDowngradeProxyOptions {
   useOVM?: boolean;
   gasPrice?: number;
   gasLimit?: number;
+  shouldIgnoreHistory?: boolean;
 }
 
 export async function downgradeProxy(
@@ -60,18 +61,17 @@ export async function downgradeProxy(
     useOVM = false,
     gasPrice,
     gasLimit,
+    shouldIgnoreHistory,
   }: IDowngradeProxyOptions = {},
 ): Promise<{ implementationAddress: string }> {
   const ProxyAdmin = useOVM ? ProxyAdminOVM : ProxyAdminEVM;
 
-  const upgradesTransactionSubmitter =
-    await TransactionSubmitter.newWithHistory(
-      `upgrades${networkSuffix ? `-${networkSuffix}` : ""}.json`,
-    );
-
-  const implementationReceipt = upgradesTransactionSubmitter.getReceipt(
-    `Deploy ${implementationName} implementation`,
+  const upgradesTransactionReceipts = await TransactionSubmitter.loadReceipts(
+    `upgrades${networkSuffix ? `-${networkSuffix}` : ""}.json`,
   );
+
+  const implementationReceipt =
+    upgradesTransactionReceipts[`Deploy ${implementationName} implementation`];
 
   if (implementationReceipt == null) {
     throw new Error(`${implementationName} implementation not found`);
@@ -86,6 +86,7 @@ export async function downgradeProxy(
   const downgradesTransactionSubmitter =
     await TransactionSubmitter.newWithHistory(
       `downgrades${networkSuffix ? `-${networkSuffix}` : ""}.json`,
+      shouldIgnoreHistory,
     );
 
   const proxyAdmin = new Contract(
