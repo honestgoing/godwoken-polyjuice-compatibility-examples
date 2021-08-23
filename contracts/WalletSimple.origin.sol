@@ -49,11 +49,6 @@ contract WalletSimple {
     bool public safeMode = false; // When active, wallet may only send to signer addresses
     bool public initialized = false; // True if the contract has been initialized
 
-    // [Polyjuice compatibility]
-    bytes32 public constant EMPTY_LOCK_HASH = hex"00";
-    // [Polyjuice compatibility]
-    bytes32 public ethAccountLockCodeHash;
-
     uint256 public count;
 
     // Internal fields
@@ -69,7 +64,7 @@ contract WalletSimple {
      *
      * @param allowedSigners An array of signers on the wallet
      */
-    function init(address[] calldata allowedSigners, bytes32 code_hash)
+    function init(address[] calldata allowedSigners)
         external
         onlyUninitialized
     {
@@ -81,9 +76,6 @@ contract WalletSimple {
         }
         signerAddressList = allowedSigners;
         initialized = true;
-
-        // [Polyjuice compatibility]
-        ethAccountLockCodeHash = code_hash;
     }
 
     /**
@@ -133,11 +125,6 @@ contract WalletSimple {
 
     function getSignerAddressList() public view returns (address[] memory) {
         return signerAddressList;
-    }
-
-    // [Polyjuice compatibility]
-    function getCodeHash() public view returns (bytes32) {
-        return ethAccountLockCodeHash;
     }
 
     /**
@@ -395,7 +382,7 @@ contract WalletSimple {
     function recoverAddressFromSignature(
         bytes32 operationHash,
         bytes memory signature
-    ) public returns (address) {
+    ) public pure returns (address) {
         // splitSignature
         require(signature.length == 65, "Invalid signature - wrong length");
 
@@ -403,12 +390,7 @@ contract WalletSimple {
             abi.encodePacked("\x19Ethereum Signed Message:\n32", operationHash)
         );
 
-        if (ethAccountLockCodeHash == EMPTY_LOCK_HASH) {
-            return ecRecover(check, signature);
-        }
-
-        // [Polyjuice compatibility]
-        return polyRecover(check, signature, ethAccountLockCodeHash);
+        return ecRecover(check, signature);
     }
 
     function getPersonalMessage(bytes32 unprefix_msg)
@@ -420,39 +402,6 @@ contract WalletSimple {
             abi.encodePacked("\x19Ethereum Signed Message:\n32", unprefix_msg)
         );
         return check;
-    }
-
-    // [Polyjuice compatibility]
-    function polyRecover(
-        bytes32 message,
-        bytes memory signature,
-        bytes32 eth_account_lock_code_hash
-    ) public returns (address addr) {
-        if (int8(signature[64]) >= 27) {
-            signature[64] = bytes1(int8(signature[64]) - 27);
-        }
-
-        bytes memory input = abi.encode(
-            message,
-            signature,
-            eth_account_lock_code_hash
-        );
-        bytes32[1] memory output;
-        assembly {
-            let len := mload(input)
-            if iszero(
-                call(not(0), 0xf2, 0x0, add(input, 0x20), len, output, 288)
-            ) {
-                revert(0x0, 0x0)
-            }
-        }
-        bytes32 script_hash = output[0];
-        require(
-            script_hash.length == 32,
-            "invalid recovered script hash length"
-        );
-
-        return address(uint160(uint256(script_hash) >> 96));
     }
 
     function ecRecover(bytes32 message, bytes memory signature)

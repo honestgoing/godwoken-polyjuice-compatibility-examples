@@ -22,7 +22,7 @@ import {
 
 import { TransactionSubmitter } from "../TransactionSubmitter";
 
-import MintableToken from "../artifacts/contracts/MintableToken.sol/MintableToken.json";
+import MintableToken from "../artifacts/contracts/MintableTokenFixedParams.sol/MintableTokenFixedParams.json";
 import CurveToken from "../generated-artifacts/contracts/CurveTokenV3.json";
 // import CurveToken from "../artifacts/contracts/CurveTokenV3.sol/CurveTokenV3.json";
 import Faucet from "../artifacts/contracts/Faucet.sol/Faucet.json";
@@ -102,10 +102,7 @@ async function main() {
         MintableToken.bytecode,
         deployer,
       );
-      const tx = implementationFactory.getDeployTransaction(
-        "MintableToken",
-        "MT",
-      );
+      const tx = implementationFactory.getDeployTransaction();
       tx.gasPrice = txOverrides.gasPrice;
       tx.gasLimit = txOverrides.gasLimit;
       return deployer.sendTransaction(tx);

@@ -1,4 +1,4 @@
-Deploy Ethereum contracts to [Godwoken](https://github.com/nervosnetwork/godwoken) and interact with them using Ethereum toolchain.
+Deploy Ethereum contracts (with compatibility modifications) to Nervos's [Godwoken](https://github.com/nervosnetwork/godwoken) [Polyjuice](https://github.com/nervosnetwork/godwoken-polyjuice) and interact with them using Ethereum toolchain.
 
 ## Prerequisites
 
@@ -27,9 +27,15 @@ yarn ts-node ./scripts/box-proxy.ts
 ENV_PATH=./.env.dev yarn ts-node ./scripts/box-proxy.ts
 ```
 
+### Compatibility Modification Note
+
+Fully compatible without modification.
+
 ## Multisignature Wallet
 
-Contracts: [WalletSimple.sol](./contracts/WalletSimple.sol), [MintableToken.sol](./contracts/MintableToken.sol)
+This example implement a simple multisig-wallet. For more details, see [WalletSimple](./contracts/WalletSimple.sol) contract code.
+
+Contracts: [WalletSimple.sol](./contracts/WalletSimple.sol), [MintableTokenFixedParams.sol](./contracts/MintableTokenFixedParams.sol)
 
 ### Prerequisites
 
@@ -50,37 +56,15 @@ yarn ts-node ./scripts/multi-sign-wallet.ts
 ENV_PATH=./.env.dev yarn ts-node ./scripts/multi-sign-wallet.ts
 ```
 
-### compatibility
+### Compatibility Modification Note
 
-- by using `polyRecover`(a special version of `ecrecover` in polyjuice) with providers, you can now recover eth address from signature. there exist no incompatibility now.
+See [WalletSimple.diff](./contracts/WalletSimple.diff) for Polyjuice compatibility modification.
 
-how to use polyRecover like ecrecover:
-
-```sol
-    function polyRecover(bytes32 message, bytes memory signature, bytes32 eth_account_lock_code_hash) public returns (address addr) {
-
-        if (int8(signature[64]) >= 27){
-            signature[64] = byte(int8(signature[64]) - 27);
-        }
-
-        bytes memory input = abi.encode(message, signature, eth_account_lock_code_hash);
-        bytes32[1] memory output;
-        assembly {
-            let len := mload(input)
-            if iszero(call(not(0), 0xf2, 0x0, add(input, 0x20), len, output, 288)) {
-                revert(0x0, 0x0)
-            }
-        }
-        bytes32 script_hash = output[0];
-        require(script_hash.length == 32, "invalid recovered script hash length");
-
-        recover_address = address(uint160(uint256(recentRecoverScriptHash) >> 96));
-
-        return recover_address;
-    }
-```
+Since `ecrecover` will return Ethereum address instead of Godwoken address, it's hardly useful on polyjuice. If your contract need to recover Godwoken address, use `polyRecover`(a special version of `ecrecover` in polyjuice). More details on [Godwoken Address vs Ethereum Address](https://github.com/nervosnetwork/godwoken/blob/master/docs/known_caveats_of_polyjuice.md#godwoken-address-vs-ethereum-address).
 
 ## Multicall
+
+This example demonstrate how to call one or more contract methods dynamically in a contract.
 
 Contracts: [Multicall.sol](./contracts/Multicall.sol)
 
@@ -101,7 +85,13 @@ yarn ts-node ./scripts/multicall.ts
 ENV_PATH=./.env.dev yarn ts-node ./scripts/multicall.ts
 ```
 
-## Multicall
+### Compatibility Modification Note
+
+Fully compatible without modification.
+
+## Create2
+
+This example demonstrate the calculation (both on-chain and off-chain) of [`create2`](https://eips.ethereum.org/EIPS/eip-1014) generated contract address.
 
 Contracts: [Create2.sol](./contracts/Create2.sol)
 
@@ -122,6 +112,39 @@ yarn ts-node ./scripts/create2.ts
 ENV_PATH=./.env.dev yarn ts-node ./scripts/create2.ts
 ```
 
+### Compatibility Modification Note
+
+Need extra method (`convertETHAddrToGodwokenAddr` in [Create2.sol](./contracts/Create2.sol)) to convert contract address for on-chain calculation.
+
+## Curve StableSwap
+
+**NOTE: Not working for testnet now (2021-08-23), needs a fix.**
+
+This example includes a Curve stable swap 3pool implementation.
+
+Contracts: [StableSwap3Pool.vy](./contracts/StableSwap3Pool.vy), [CurveTokenV3.vy](./contracts/CurveTokenV3.vy), [MintableToken.sol](./contracts/MintableToken.sol), [Faucet.sol](./contracts/Faucet.sol)
+
+Install dependencies and compile contracts if not already.
+
+```sh
+yarn install
+yarn compile
+```
+
+### Run
+
+```sh
+# testnet
+yarn ts-node ./scripts/stable-swap-3-pool.ts
+
+# devnet
+ENV_PATH=./.env.dev yarn ts-node ./scripts/stable-swap-3-pool.ts
+```
+
+### Compatibility Modification Note
+
+Fully compatible without modification.
+
 ## Devnet Debugging
 
 Use [godwoken-kicker](https://github.com/RetricSu/godwoken-kicker) to start a quick devnet `godwoken-polyjuice` chain.
@@ -140,4 +163,10 @@ ETH_ACCOUNT_LOCK_CODE_HASH=< replace with your godwoken devnet eth-account-lock 
 
 GODWOKEN_API_URL=http://localhost:6101
 EOF
+```
+
+Tip: You can use environment variable IGNORE_HISTORY to force re-run a script
+
+```sh
+IGNORE_HISTORY=true ENV_PATH=./.env.dev yarn ts-node ./scripts/box-proxy.ts
 ```

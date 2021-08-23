@@ -27,6 +27,7 @@ interface ICreate2StaticMethods extends TCallStatic {
   getAddress(salt: string, overrides?: CallOverrides): Promise<string>;
   INIT_CODE_HASH(overrides?: CallOverrides): Promise<string>;
   creationCode(overrides?: CallOverrides): Promise<string>;
+  convertETHAddrToGodwokenAddr(ethAddr: string): Promise<string>;
 }
 
 interface ICreate2 extends Contract, ICreate2StaticMethods {
@@ -79,7 +80,10 @@ async function main() {
   const salt = constants.HashZero;
   const initCodeHash = await create2.callStatic.INIT_CODE_HASH();
 
-  console.log("create2 return address:", await create2.callStatic.create(salt));
+  console.log(
+    "    create2 returns address:",
+    await create2.callStatic.create(salt),
+  );
 
   let offChainCreate2Address = utils.getCreate2Address(
     create2Address,
@@ -91,12 +95,16 @@ async function main() {
       offChainCreate2Address,
     );
   }
-  console.log("    Off-chain create2 address:", offChainCreate2Address);
+  console.log("    Off-chain calculation:", offChainCreate2Address);
 
-  console.log(
-    "    On-chain create2 address:",
-    await create2.callStatic.getAddress(salt),
-  );
+  let onChainCreate2Address = await create2.callStatic.getAddress(salt);
+  if (isGodwoken) {
+    onChainCreate2Address =
+      await create2.callStatic.convertETHAddrToGodwokenAddr(
+        onChainCreate2Address,
+      );
+  }
+  console.log("    On-chain calculation:", onChainCreate2Address);
 }
 
 main()

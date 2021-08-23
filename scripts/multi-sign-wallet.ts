@@ -9,7 +9,13 @@ import {
   utils as ethersUtils,
   Signer,
   PopulatedTransaction,
+  Wallet as EthersWallet,
 } from "ethers";
+import { AbiItems } from "@polyjuice-provider/base/lib/abi";
+import {
+  PolyjuiceJsonRpcProvider,
+  PolyjuiceWallet,
+} from "@polyjuice-provider/ethers";
 
 import { TransactionSubmitter } from "../TransactionSubmitter";
 import {
@@ -22,17 +28,14 @@ import {
 } from "../common";
 
 import WalletSimple from "../artifacts/contracts/WalletSimple.sol/WalletSimple.json";
-import MintableToken from "../artifacts/contracts/MintableToken.sol/MintableToken.json";
-
-import { PolyjuiceWallet } from "@polyjuice-provider/ethers";
-import dotenv from "dotenv";
-dotenv.config();
+import MintableToken from "../artifacts/contracts/MintableTokenFixedParams.sol/MintableTokenFixedParams.json";
 
 type TCallStatic = Contract["callStatic"];
 type TransactionResponse = providers.TransactionResponse;
 
 interface IWalletSimpleStaticMethods extends TCallStatic {
   getNextSequenceId(overrides?: CallOverrides): Promise<BigNumber>;
+  EMPTY_LOCK_HASH(): Promise<string>;
 }
 
 interface IWalletSimple extends Contract, IWalletSimpleStaticMethods {
@@ -89,10 +92,12 @@ if (signerPrivateKeys.length !== 2) {
   process.exit(1);
 }
 
-const [signerOne, signerTwo] = signerPrivateKeys.map(
-  (signerPrivateKey) =>
-    new PolyjuiceWallet(signerPrivateKey, polyjuiceConfig, rpc),
+const [signerOne, signerTwo] = signerPrivateKeys.map((signerPrivateKey) =>
+  isGodwoken
+    ? new PolyjuiceWallet(signerPrivateKey, polyjuiceConfig, rpc)
+    : new EthersWallet(signerPrivateKey, rpc),
 );
+
 const [signerOneAddress, signerTwoAddress] = [signerOne, signerTwo].map(
   (wallet) => wallet.address,
 );
@@ -103,8 +108,17 @@ const txOverride = {
 };
 
 async function main() {
-  console.log("Deployer address", deployerAddress);
+  console.log("Deployer address:", deployerAddress);
   await initGWKAccountIfNeeded(deployerAddress);
+
+  // explicitly get godwoken address for `populateTransaction` encoding
+  let deployerRecipientAddress = deployerAddress;
+  if (isGodwoken) {
+    const { godwoker } = rpc as PolyjuiceJsonRpcProvider;
+    deployerRecipientAddress =
+      await godwoker.getShortAddressByAllTypeEthAddress(deployerAddress);
+    console.log("Deployer godwoken address:", deployerRecipientAddress);
+  }
 
   const transactionSubmitter = await TransactionSubmitter.newWithHistory(
     `multi-sign-wallet${networkSuffix ? `-${networkSuffix}` : ""}.json`,
@@ -134,6 +148,13 @@ async function main() {
     deployer,
   ) as IWalletSimple;
 
+  if (isGodwoken) {
+    // for address auto conversion (Ethereum -> Godwoken)
+    (deployer as PolyjuiceWallet).setAbi(WalletSimple.abi as AbiItems);
+    (signerOne as PolyjuiceWallet).setAbi(WalletSimple.abi as AbiItems);
+    (signerTwo as PolyjuiceWallet).setAbi(WalletSimple.abi as AbiItems);
+  }
+
   const signerAddresses: [string, string, string] = [
     signerOneAddress,
     signerTwoAddress,
@@ -141,10 +162,12 @@ async function main() {
   ];
   console.log("Signer addresses:", signerAddresses.join(", "));
 
-  await transactionSubmitter.submitAndWait(`Init WalletSimple`, () => {
+  await transactionSubmitter.submitAndWait(`Init WalletSimple`, async () => {
     return walletSimple.init(
       signerAddresses,
-      process.env.ETH_ACCOUNT_LOCK_CODE_HASH!,
+      isGodwoken
+        ? process.env.ETH_ACCOUNT_LOCK_CODE_HASH!
+        : await walletSimple.callStatic.EMPTY_LOCK_HASH(),
       txOverride,
     );
   });
@@ -177,13 +200,13 @@ async function main() {
   });
 
   console.log(
-    "Balance before mint:",
-    (await mintableToken.balanceOf(deployerAddress)).toString(),
+    "User balance before mint:",
+    (await mintableToken.balanceOf(deployerRecipientAddress)).toString(),
   );
 
   await initGWKAccountIfNeeded(signerTwoAddress);
   await transactionSubmitter.submitAndWait(
-    `Mint 100 using WalletSimple`,
+    `Mint 100 token using WalletSimple`,
     async () => {
       const walletSimpleForSignerTwo = new Contract(
         walletSimpleAddress,
@@ -192,7 +215,7 @@ async function main() {
       ) as IWalletSimple;
 
       const baseTx = await mintableToken.populateTransaction.mint(
-        deployerAddress,
+        deployerRecipientAddress,
         "100",
       );
 
@@ -220,8 +243,8 @@ async function main() {
   );
 
   console.log(
-    "Balance after mint:",
-    (await mintableToken.balanceOf(deployerAddress)).toString(),
+    "    User balance after mint:",
+    (await mintableToken.balanceOf(deployerRecipientAddress)).toString(),
   );
 }
 
@@ -234,7 +257,7 @@ async function getSignature(
   expireTime: number,
   sequenceId: BigNumber,
 ): Promise<string> {
-  console.log([prefix, toAddress, value, data, expireTime, sequenceId]);
+  // console.log([prefix, toAddress, value, data, expireTime, sequenceId]);
   const operationHash = ethersUtils.solidityKeccak256(
     ["string", "address", "uint256", "bytes", "uint256", "uint256"],
     [prefix, toAddress, value, data, expireTime, sequenceId],
@@ -286,8 +309,8 @@ export async function generateSignedTx(
     unsignedTx.sequenceId,
   );
 
-  console.log(`signature: ${signature}`);
-  console.log(`unsignedTx.data: ${unsignedTx.data}`);
+  // console.log(`signature: ${signature}`);
+  // console.log(`unsignedTx.data: ${unsignedTx.data}`);
 
   return {
     toAddress: unsignedTx.toAddress.toLowerCase(),

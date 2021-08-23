@@ -27,7 +27,6 @@ export const polyjuiceConfig: PolyjuiceConfig = {
   rollupTypeHash: process.env.ROLLUP_TYPE_HASH!,
   ethAccountLockCodeHash: process.env.ETH_ACCOUNT_LOCK_CODE_HASH!,
   web3Url: process.env.RPC_URL,
-  abiItems: WalletSimple.abi as AbiItems,
 };
 export const polyjuiceRPC = new PolyjuiceJsonRpcProvider(
   polyjuiceConfig,
