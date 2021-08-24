@@ -131,8 +131,6 @@ Need extra method (`convertETHAddrToGodwokenAddr` in [Create2.sol](./contracts/C
 
 ## Curve StableSwap
 
-**NOTE: Not working for testnet now (2021-08-23), needs a fix.**
-
 This example includes a Curve stable swap 3pool implementation.
 
 Contracts: [StableSwap3Pool.vy](./contracts/StableSwap3Pool.vy), [CurveTokenV3.vy](./contracts/CurveTokenV3.vy), [MintableToken.sol](./contracts/MintableToken.sol), [Faucet.sol](./contracts/Faucet.sol)
