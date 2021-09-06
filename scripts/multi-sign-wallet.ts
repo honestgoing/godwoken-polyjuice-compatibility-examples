@@ -11,7 +11,7 @@ import {
   PopulatedTransaction,
   Wallet as EthersWallet,
 } from "ethers";
-import { AbiItems } from "@polyjuice-provider/base/lib/abi";
+import { AbiItems, ShortAddress } from "@polyjuice-provider/base";
 import {
   PolyjuiceJsonRpcProvider,
   PolyjuiceWallet,
@@ -115,8 +115,9 @@ async function main() {
   let deployerRecipientAddress = deployerAddress;
   if (isGodwoken) {
     const { godwoker } = rpc as PolyjuiceJsonRpcProvider;
-    deployerRecipientAddress =
+    const shortAddr: ShortAddress =
       await godwoker.getShortAddressByAllTypeEthAddress(deployerAddress);
+    deployerRecipientAddress = shortAddr.value;
     console.log("Deployer godwoken address:", deployerRecipientAddress);
   }
 

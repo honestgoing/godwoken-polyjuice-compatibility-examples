@@ -26,6 +26,7 @@ import MintableToken from "../artifacts/contracts/MintableToken.sol/MintableToke
 import Faucet from "../artifacts/contracts/Faucet.sol/Faucet.json";
 import CurveTokenV3 from "../generated-artifacts/contracts/CurveTokenV3.json";
 import StableSwap3Pool from "../generated-artifacts/contracts/StableSwap3Pool.json";
+import { ShortAddress } from "@polyjuice-provider/base";
 
 type TCallStatic = Contract["callStatic"];
 type TransactionResponse = providers.TransactionResponse;
@@ -123,8 +124,9 @@ async function main() {
   let deployerRecipientAddress = deployerAddress;
   if (isGodwoken) {
     const { godwoker } = rpc as PolyjuiceJsonRpcProvider;
-    deployerRecipientAddress =
+    const shortAddress: ShortAddress =
       await godwoker.getShortAddressByAllTypeEthAddress(deployerAddress);
+    deployerRecipientAddress = shortAddress.value;
     console.log("Deployer godwoken address:", deployerRecipientAddress);
   }
 
