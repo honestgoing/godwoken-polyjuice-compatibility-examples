@@ -1,12 +1,12 @@
 import { ethers } from "ethers";
 import {
   PolyjuiceWallet,
-  PolyjuiceConfig,
   PolyjuiceJsonRpcProvider,
 } from "@polyjuice-provider/ethers";
+import { PolyjuiceConfig } from "@polyjuice-provider/base";
 import dotenv from "dotenv";
 import axios from "axios";
-import { AbiItems } from "@polyjuice-provider/base/lib/abi";
+import { AbiItems } from "@polyjuice-provider/base";
 import path from "path";
 import { HexString, Script, utils } from "@ckb-lumos/base";
 
@@ -100,7 +100,7 @@ export function ethEoaAddressToGodwokenShortAddress(
   }
 
   const layer2Lock: Script = {
-    code_hash: polyjuiceConfig.ethAccountLockCodeHash,
+    code_hash: polyjuiceConfig.ethAccountLockCodeHash!,
     hash_type: "type",
     args: polyjuiceConfig.rollupTypeHash + ethAddress.slice(2).toLowerCase(),
   };
