@@ -108,8 +108,12 @@ const txOverride = {
 };
 
 async function main() {
-  console.log("Deployer address:", deployerAddress);
+  // init godwoken accounts of signers first
+  await initGWKAccountIfNeeded(signerTwoAddress);
+  await initGWKAccountIfNeeded(signerOneAddress);
   await initGWKAccountIfNeeded(deployerAddress);
+
+  console.log("Deployer address:", deployerAddress);
 
   // explicitly get godwoken address for `populateTransaction` encoding
   let deployerRecipientAddress = deployerAddress;
@@ -205,7 +209,6 @@ async function main() {
     (await mintableToken.balanceOf(deployerRecipientAddress)).toString(),
   );
 
-  await initGWKAccountIfNeeded(signerTwoAddress);
   await transactionSubmitter.submitAndWait(
     `Mint 100 token using WalletSimple`,
     async () => {
