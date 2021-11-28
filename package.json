@@ -33,6 +33,6 @@
   },
   "dependencies": {
     "@ckb-lumos/base": "^0.16.0",
-    "@polyjuice-provider/ethers": "^0.0.1-rc10"
+    "@polyjuice-provider/ethers": "^0.1.0"
   }
 }

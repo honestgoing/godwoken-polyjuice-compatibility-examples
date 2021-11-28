@@ -119,9 +119,8 @@ async function main() {
   let deployerRecipientAddress = deployerAddress;
   if (isGodwoken) {
     const { godwoker } = rpc as PolyjuiceJsonRpcProvider;
-    const shortAddr: ShortAddress =
-      await godwoker.getShortAddressByAllTypeEthAddress(deployerAddress);
-    deployerRecipientAddress = shortAddr.value;
+    deployerRecipientAddress =
+      godwoker.computeShortAddressByEoaEthAddress(deployerAddress);
     console.log("Deployer godwoken address:", deployerRecipientAddress);
   }
 
