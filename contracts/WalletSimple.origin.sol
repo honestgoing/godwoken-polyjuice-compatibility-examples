@@ -33,7 +33,6 @@ contract WalletSimple {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     // Events
     event Deposited(address from, uint256 value, bytes data);
-    event SafeModeActivated(address msgSender);
     event Transacted(
         address msgSender, // Address of the sender of the message initiating the transaction
         address otherSigner, // Address of the signer (second signature) used to initiate the transaction
@@ -46,7 +45,6 @@ contract WalletSimple {
     // Public fields
     mapping(address => bool) public signers; // The addresses that can co-sign transactions on the wallet
     address[] public signerAddressList;
-    bool public safeMode = false; // When active, wallet may only send to signer addresses
     bool public initialized = false; // True if the contract has been initialized
 
     uint256 public count;
@@ -216,12 +214,6 @@ contract WalletSimple {
         uint256 expireTime,
         uint256 sequenceId
     ) public returns (address) {
-        // Verify if we are in safe mode. In safe mode, the wallet can only send to signers
-        require(
-            !safeMode || isSigner(toAddress),
-            "External transfer in safe mode"
-        );
-
         // Verify that the transaction has not expired
         require(expireTime >= block.timestamp, "Transaction expired");
 
@@ -342,14 +334,6 @@ contract WalletSimple {
         );
 
         IERC20Upgradeable(tokenContractAddress).safeTransfer(toAddress, value);
-    }
-
-    /**
-     * Irrevocably puts contract into safe mode. When in this mode, transactions may only be sent to signing addresses.
-     */
-    function activateSafeMode() external onlySigner {
-        safeMode = true;
-        emit SafeModeActivated(msg.sender);
     }
 
     function getMessageHash(

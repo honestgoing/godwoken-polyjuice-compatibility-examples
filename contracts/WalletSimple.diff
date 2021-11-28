@@ -1,28 +1,28 @@
-51a52,56
+49a50,54
 >     // [Polyjuice compatibility]
 >     bytes32 public constant EMPTY_LOCK_HASH = hex"00";
 >     // [Polyjuice compatibility]
 >     bytes32 public ethAccountLockCodeHash;
 > 
-67c72
+65c70
 <     function init(address[] calldata allowedSigners)
 ---
 >     function init(address[] calldata allowedSigners, bytes32 code_hash)
-78a84,86
+76a82,84
 > 
 >         // [Polyjuice compatibility]
 >         ethAccountLockCodeHash = code_hash;
-129a138,142
+127a136,140
 >     // [Polyjuice compatibility]
 >     function getCodeHash() public view returns (bytes32) {
 >         return ethAccountLockCodeHash;
 >     }
 > 
-385c398
+369c382
 <     ) public pure returns (address) {
 ---
 >     ) public returns (address) {
-393c406,411
+377c390,395
 <         return ecRecover(check, signature);
 ---
 >         if (ethAccountLockCodeHash == EMPTY_LOCK_HASH) {
@@ -31,7 +31,7 @@
 > 
 >         // [Polyjuice compatibility]
 >         return polyRecover(check, signature, ethAccountLockCodeHash);
-406a425,457
+390a409,441
 >     // [Polyjuice compatibility]
 >     function polyRecover(
 >         bytes32 message,
