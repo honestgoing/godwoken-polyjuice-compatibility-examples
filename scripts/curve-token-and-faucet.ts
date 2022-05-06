@@ -12,8 +12,9 @@ import { PolyjuiceJsonRpcProvider } from "@polyjuice-provider/ethers";
 
 import {
   deployer,
-  initGWKAccountIfNeeded,
+  initGWAccountIfNeeded,
   isGodwoken,
+  isGodwokenV0,
   networkSuffix,
   rpc,
   unit,
@@ -79,10 +80,10 @@ const txOverrides = {
 async function main() {
   console.log("Deployer address", deployerAddress);
 
-  await initGWKAccountIfNeeded(deployerAddress);
+  await initGWAccountIfNeeded(deployerAddress);
 
   let deployerRecipientAddress = deployerAddress;
-  if (isGodwoken) {
+  if (isGodwokenV0) {
     const { godwoker } = rpc as PolyjuiceJsonRpcProvider;
     deployerRecipientAddress =
       godwoker.computeShortAddressByEoaEthAddress(deployerAddress);
@@ -213,7 +214,7 @@ async function main() {
         ),
       )
     )
-      .map(unitBNToLocaleString)
+      .map((bn) => unitBNToLocaleString(bn, 18))
       .join(", "),
   );
 }

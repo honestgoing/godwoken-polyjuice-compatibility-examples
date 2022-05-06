@@ -11,7 +11,7 @@ import {
   PopulatedTransaction,
   Wallet as EthersWallet,
 } from "ethers";
-import { AbiItems, ShortAddress } from "@polyjuice-provider/base";
+import { AbiItems } from "@polyjuice-provider/base";
 import {
   PolyjuiceJsonRpcProvider,
   PolyjuiceWallet,
@@ -22,8 +22,9 @@ import {
   rpc,
   deployer,
   networkSuffix,
-  initGWKAccountIfNeeded,
+  initGWAccountIfNeeded,
   isGodwoken,
+  isGodwokenV0,
   polyjuiceConfig,
 } from "../common";
 
@@ -93,7 +94,7 @@ if (signerPrivateKeys.length !== 2) {
 }
 
 const [signerOne, signerTwo] = signerPrivateKeys.map((signerPrivateKey) =>
-  isGodwoken
+  isGodwokenV0
     ? new PolyjuiceWallet(signerPrivateKey, polyjuiceConfig, rpc)
     : new EthersWallet(signerPrivateKey, rpc),
 );
@@ -109,15 +110,14 @@ const txOverride = {
 
 async function main() {
   // init godwoken accounts of signers first
-  await initGWKAccountIfNeeded(signerTwoAddress);
-  await initGWKAccountIfNeeded(signerOneAddress);
-  await initGWKAccountIfNeeded(deployerAddress);
+  await initGWAccountIfNeeded(deployerAddress);
+  await initGWAccountIfNeeded(signerTwoAddress);
 
   console.log("Deployer address:", deployerAddress);
 
   // explicitly get godwoken address for `populateTransaction` encoding
   let deployerRecipientAddress = deployerAddress;
-  if (isGodwoken) {
+  if (isGodwokenV0) {
     const { godwoker } = rpc as PolyjuiceJsonRpcProvider;
     deployerRecipientAddress =
       godwoker.computeShortAddressByEoaEthAddress(deployerAddress);
@@ -152,7 +152,7 @@ async function main() {
     deployer,
   ) as IWalletSimple;
 
-  if (isGodwoken) {
+  if (isGodwokenV0) {
     // for address auto conversion (Ethereum -> Godwoken)
     (deployer as PolyjuiceWallet).setAbi(WalletSimple.abi as AbiItems);
     (signerOne as PolyjuiceWallet).setAbi(WalletSimple.abi as AbiItems);
@@ -169,7 +169,7 @@ async function main() {
   await transactionSubmitter.submitAndWait(`Init WalletSimple`, async () => {
     return walletSimple.init(
       signerAddresses,
-      isGodwoken
+      isGodwokenV0
         ? process.env.ETH_ACCOUNT_LOCK_CODE_HASH!
         : await walletSimple.callStatic.EMPTY_LOCK_HASH(),
       txOverride,

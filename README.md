@@ -71,9 +71,17 @@ ENV_PATH=./.env.dev yarn ts-node ./scripts/multi-sign-wallet.ts
 
 ### Compatibility Modification Note
 
+#### Godwoken v0
+
 See [WalletSimple.diff](./contracts/WalletSimple.diff) for Polyjuice compatibility modification.
 
 Since `ecrecover` will return Ethereum address instead of Godwoken address, it's hardly useful on polyjuice. If your contract need to recover Godwoken address, use `polyRecover`(a special version of `ecrecover` in polyjuice). More details on [Godwoken Address vs Ethereum Address](https://github.com/nervosnetwork/godwoken/blob/master/docs/known_caveats_of_polyjuice.md#godwoken-address-vs-ethereum-address).
+
+#### Godwoken V1
+
+Fully compatible without modification.
+
+Godwoken address is deprecated, therefore `polyRecover` is no longer needed.
 
 ## Multicall
 
@@ -127,7 +135,15 @@ ENV_PATH=./.env.dev yarn ts-node ./scripts/create2.ts
 
 ### Compatibility Modification Note
 
+#### Godwoken V0
+
 Need extra method (`convertETHAddrToGodwokenAddr` in [Create2.sol](./contracts/Create2.sol)) to convert contract address for on-chain calculation.
+
+#### Godwoken V1
+
+Fully compatible without modification.
+
+Godwoken address is deprecated, therefore extra address convert method is no longer needed.
 
 ## Curve StableSwap
 
@@ -166,7 +182,7 @@ Create such `.env.dev` file, remember to replace with your godwoken-polyjuice de
 cat > .env.dev <<EOF
 DEPLOYER_PRIVATE_KEY=1473ec0e7c507de1d5c734a997848a78ee4d30846986d6b1d22002a57ece74ba
 RPC_URL=http://localhost:8024
-NETWORK_SUFFIX=gwk-devnet
+NETWORK_SUFFIX=gw-devnet
 SIGNER_PRIVATE_KEYS=bdb4474bdd46bf9897accc60c5eb945793e7a3d321bf3b70c30295ceb3433f28,f2d929da616e74fe61bbf5a87a910ac60cfd300d2011bd6212b84ddedddce8ea
 
 ROLLUP_TYPE_HASH=< replace with your godwoken devnet rollup type hash >

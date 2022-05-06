@@ -1,6 +1,6 @@
 import { ContractFactory, Contract, BigNumberish } from "ethers";
 
-import { rpc, deployer, isGodwoken, initGWKAccountIfNeeded } from "../common";
+import { rpc, deployer, isGodwoken, initGWAccountIfNeeded } from "../common";
 
 import { deployProxy } from "../upgrades/deployProxy";
 import { upgradeProxy } from "../upgrades/upgradeProxy";
@@ -22,7 +22,7 @@ const deployerAddress = deployer.address;
 
 async function main() {
   console.log("Deployer address:", deployerAddress);
-  await initGWKAccountIfNeeded(deployerAddress);
+  await initGWAccountIfNeeded(deployerAddress);
   const { adminAddress, proxyAddress } = await deployProxy(
     {
       implementationName: "Box",

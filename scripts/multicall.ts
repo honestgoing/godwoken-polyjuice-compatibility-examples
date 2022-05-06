@@ -9,8 +9,9 @@ import {
 import {
   deployer,
   ethEoaAddressToGodwokenShortAddress,
-  initGWKAccountIfNeeded,
+  initGWAccountIfNeeded,
   isGodwoken,
+  isGodwokenV0,
   networkSuffix,
 } from "../common";
 
@@ -41,10 +42,10 @@ const txOverrides = {
 
 async function main() {
   console.log("Deployer address", deployerAddress);
-  await initGWKAccountIfNeeded(deployerAddress);
+  await initGWAccountIfNeeded(deployerAddress);
 
   let deployerGodwokenAddress = deployerAddress;
-  if (isGodwoken) {
+  if (isGodwokenV0) {
     deployerGodwokenAddress =
       ethEoaAddressToGodwokenShortAddress(deployerAddress);
     console.log("Deployer godwoken address:", deployerGodwokenAddress);

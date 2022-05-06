@@ -12,8 +12,9 @@ import { PolyjuiceJsonRpcProvider } from "@polyjuice-provider/ethers";
 
 import {
   deployer,
-  initGWKAccountIfNeeded,
+  initGWAccountIfNeeded,
   isGodwoken,
+  isGodwokenV0,
   networkSuffix,
   rpc,
   unit,
@@ -119,10 +120,10 @@ const tokens = {
 async function main() {
   console.log("Deployer address:", deployerAddress);
 
-  await initGWKAccountIfNeeded(deployerAddress);
+  await initGWAccountIfNeeded(deployerAddress);
 
   let deployerRecipientAddress = deployerAddress;
-  if (isGodwoken) {
+  if (isGodwokenV0) {
     const { godwoker } = rpc as PolyjuiceJsonRpcProvider;
     const shortAddress: ShortAddress =
       await godwoker.getShortAddressByAllTypeEthAddress(deployerAddress);
@@ -192,7 +193,7 @@ async function main() {
         ),
       )
     )
-      .map(unitBNToLocaleString)
+      .map((bn) => unitBNToLocaleString(bn, 18))
       .join(", "),
   );
 
@@ -269,7 +270,7 @@ async function main() {
         swap.callStatic.balances(2),
       ])
     )
-      .map(unitBNToLocaleString)
+      .map((bn) => unitBNToLocaleString(bn, 18))
       .join(", "),
   );
 
@@ -304,7 +305,7 @@ async function main() {
         swap.callStatic.balances(2),
       ])
     )
-      .map(unitBNToLocaleString)
+      .map((bn) => unitBNToLocaleString(bn, 18))
       .join(", "),
   );
 
@@ -319,7 +320,7 @@ async function main() {
           .concat(crv3POOL.callStatic.balanceOf(deployerRecipientAddress)),
       )
     )
-      .map(unitBNToLocaleString)
+      .map((bn) => unitBNToLocaleString(bn, 18))
       .join(", "),
   );
 

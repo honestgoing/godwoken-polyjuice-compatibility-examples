@@ -11,8 +11,9 @@ import {
 import {
   deployer,
   create2ContractAddressToGodwokenShortAddress,
-  initGWKAccountIfNeeded,
+  initGWAccountIfNeeded,
   isGodwoken,
+  isGodwokenV0,
   networkSuffix,
 } from "../common";
 
@@ -46,7 +47,7 @@ const txOverrides = {
 
 async function main() {
   console.log("Deployer address", deployerAddress);
-  await initGWKAccountIfNeeded(deployerAddress);
+  await initGWAccountIfNeeded(deployerAddress);
 
   const transactionSubmitter = await TransactionSubmitter.newWithHistory(
     `create2${networkSuffix ? `-${networkSuffix}` : ""}.json`,
@@ -98,7 +99,7 @@ async function main() {
   console.log("    Off-chain calculation:", offChainCreate2Address);
 
   let onChainCreate2Address = await create2.callStatic.getAddress(salt);
-  if (isGodwoken) {
+  if (isGodwokenV0) {
     onChainCreate2Address =
       await create2.callStatic.convertETHAddrToGodwokenAddr(
         onChainCreate2Address,

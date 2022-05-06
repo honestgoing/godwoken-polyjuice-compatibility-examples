@@ -6,11 +6,8 @@ import {
 import { PolyjuiceConfig } from "@polyjuice-provider/base";
 import dotenv from "dotenv";
 import axios from "axios";
-import { AbiItems } from "@polyjuice-provider/base";
 import path from "path";
 import { HexString, Script, utils } from "@ckb-lumos/base";
-
-import WalletSimple from "./artifacts/contracts/WalletSimple.sol/WalletSimple.json";
 
 dotenv.config({
   path: path.resolve(process.env.ENV_PATH ?? "./.env"),
@@ -47,20 +44,30 @@ export const defaultDeployer = new ethers.Wallet(
 );
 
 export const networkSuffix = NETWORK_SUFFIX;
-export const isGodwokenDevnet = networkSuffix === "gwk-devnet";
+export const isGodwokenDevnet = networkSuffix === "gw-devnet";
 
-export async function initGWKAccountIfNeeded(account: string, usingRPC = rpc) {
-  const balance = await usingRPC.getBalance(account);
-  if (balance.gt(0)) {
-    return;
-  }
-
+export async function initGWAccountIfNeeded(
+  account: string,
+  usingRPC = polyjuiceRPC,
+) {
   if (!isGodwoken) {
-    console.log(`[warn] account(${account}) balance is 0`);
     return;
   }
 
-  if (networkSuffix !== "gwk-devnet") {
+  let accountID: string | null = null;
+  try {
+    accountID = await usingRPC.godwoker.getAccountIdByEoaEthAddress(account);
+  } catch (err: any) {
+    if (!err?.message.includes("unable to fetch account id")) {
+      throw err;
+    }
+  }
+
+  if (accountID != null) {
+    return;
+  }
+
+  if (networkSuffix !== "gw-devnet") {
     throw new Error(
       `Please initialize godwoken account for ${account} by deposit first`,
     );
@@ -91,7 +98,7 @@ export async function initGWKAccountIfNeeded(account: string, usingRPC = rpc) {
 export function ethEoaAddressToGodwokenShortAddress(
   ethAddress: HexString,
 ): HexString {
-  if (!isGodwoken) {
+  if (!isGodwokenV0) {
     return ethAddress;
   }
 
@@ -112,7 +119,7 @@ export function ethEoaAddressToGodwokenShortAddress(
 export function create2ContractAddressToGodwokenShortAddress(
   ethAddress: HexString,
 ): HexString {
-  if (!isGodwoken) {
+  if (!isGodwokenV0) {
     return ethAddress;
   }
 
@@ -136,9 +143,10 @@ export function create2ContractAddressToGodwokenShortAddress(
   return ethers.utils.getAddress(shortAddress);
 }
 
-export const isGodwoken = networkSuffix?.startsWith("gwk");
-export const rpc = isGodwoken ? polyjuiceRPC : defaultRPC;
-export const deployer = isGodwoken ? polyjuiceDeployer : defaultDeployer;
+export const isGodwoken = networkSuffix?.startsWith("gw");
+export const isGodwokenV0 = isGodwoken && !networkSuffix?.startsWith("gw-v1");
+export const rpc = isGodwokenV0 ? polyjuiceRPC : defaultRPC;
+export const deployer = isGodwokenV0 ? polyjuiceDeployer : defaultDeployer;
 
 function u32ToLittleEndian(num: number): HexString {
   const buf = Buffer.alloc(4);
@@ -146,14 +154,22 @@ function u32ToLittleEndian(num: number): HexString {
   return `0x${buf.toString("hex")}`;
 }
 
-export function unit(n: number): ethers.BigNumber {
-  return ethers.constants.WeiPerEther.mul(ethers.BigNumber.from(n * 1e6)).div(
-    1e6,
-  );
+export function unit(n: number | string, decimals = 18): ethers.BigNumber {
+  return ethers.utils.parseUnits(n.toString(), decimals);
 }
 
-export function unitBNToLocaleString(bn: ethers.BigNumber) {
-  return (
-    bn.div(ethers.constants.WeiPerEther.div(1e9)).toNumber() / 1e9
-  ).toLocaleString("en-US");
+export function beautify(str = ""): string {
+  const reg =
+    str.indexOf(".") > -1 ? /(\d)(?=(\d{3})+\.)/g : /(\d)(?=(?:\d{3})+$)/g;
+  str = str.replace(reg, "$1,");
+  return str.replace(/(\.[0-9]*[1-9]+)(0)*/, "$1");
 }
+
+export function unitBNToLocaleString(bn: ethers.BigNumber, decimals = 18) {
+  return beautify(ethers.utils.formatUnits(bn, decimals));
+}
+
+export const txOverrides: ethers.Overrides = {
+  gasPrice: isGodwoken ? 0 : undefined,
+  gasLimit: isGodwoken ? 12_500_000 : undefined,
+};
