@@ -80,8 +80,9 @@ async function main() {
     deployer,
   ) as IMulticall;
 
+  console.log("Running: get native balance with Multicall.getEthBalance");
   console.log(
-    "Balance:",
+    "    Balance:",
     (
       await multicall.callStatic.getEthBalance(deployerGodwokenAddress)
     ).toString(),
@@ -92,8 +93,9 @@ async function main() {
     [deployerGodwokenAddress],
   );
 
+  console.log("Running: get native balance with Multicall.aggregate");
   console.log(
-    "Balance:",
+    "    Balance:",
     BigNumber.from(
       (
         await multicall.callStatic.aggregate([[multicallAddress, callData]])
@@ -101,12 +103,21 @@ async function main() {
     ).toString(),
   );
 
-  console.log(
-    "Expecting 0x:",
-    (
+  try {
+    console.log(
+      "Running: calling nonexistent contract with Multicall.aggregate",
+    );
+    const result = (
       await multicall.callStatic.aggregate([[constants.AddressZero, callData]])
-    )[1][0],
-  );
+    )[1][0];
+    if (result !== "0x") {
+      console.log("    [Incompatibility] Expected result: 0x, got:", result);
+    }
+    console.log("    Done");
+  } catch (err) {
+    console.log("    [Incompatibility] Should not revert");
+    throw new Error(err?.error?.body ?? err);
+  }
 }
 
 main()
